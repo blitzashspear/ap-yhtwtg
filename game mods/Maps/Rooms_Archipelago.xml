@@ -253,6 +253,7 @@
 </room>
 
 <room x="-2" y="5" title="Back to the Surface">
+	<entity template="crumbler" x="155" y="115" />
 	<entity template="gate" x="288" y="88"
 		destwx="0" destwy="2" destrx="160" destry="112" />
 </room>
@@ -541,4 +542,50 @@
 </room>
 <room x="1" y="-4" dyntitle="true">
 	<entity template="gate" x="160" y="80" dyndest="true" />
+</room>
+
+<room x="3" y="-4" title="Spiral Out" secret="true">
+</room>
+
+<room x="3" y="-3" title="Keep Going" secret="true">
+</room>
+
+<room x="4" y="-3" title="Are You Watching Closely?" secret="true">
+	<remap dx="0" dy="1" x="4" y="-3" />
+</room>
+
+<room x="4" y="-4" title="Know Our Names" secret="true">
+	<remap dx="1" dy="0" x="5" y="-3" />
+	<remap dx="-1" dy="0" x="4" y="-5" />
+</room>
+
+<room x="4" y="-5" title="The Books Will Not" secret="true" onpause="sigil_egg">
+	<remap dx="1" dy="0" x="4" y="-4" />
+</room>
+
+<room x="5" y="-3" title="The Solo From Oaks" secret="true">
+	<remap dx="-1" dy="0" x="5" y="-3" />
+	<entity template="plasm_spawner" rate="0.5" x="252" y="60" stagger="0.0" dx="-1" dy="0.0" bounces="2" speed="132" />
+</room>
+
+<room x="5" y="-2" title="No Fun Without the Danger" secret="true">
+	<remap dx="0" dy="-1" x="5" y="-2" />
+	<remap dx="0" dy="1" x="6" y="-3" />
+</room>
+
+<room x="6" y="-3" title="Loaded Dice" secret="true">
+	<remap dx="0" dy="-1" x="5" y="-2" />
+</room>
+
+<room x="7" y="-3" title="Re: Volver" secret="true">
+</room>
+
+<room x="8" y="-3" title="Melancholy" secret="true">
+	<remap dx="-1" dy="0" x="8" y="-3" />
+	<remap dx="1" dy="0" x="8" y="-3" />
+</room>
+
+<room x="8" y="-2" title="Sadness" secret="true" onpause="sigil_end">
+	<remap dx="0" dy="1" x="8" y="-2" />
+	<remap dx="0" dy="-1" x="8" y="-2" />
 </room>
