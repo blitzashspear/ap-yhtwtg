@@ -1,7 +1,9 @@
 # An Archipelago Implementation for You Have to Win the Game
 
 *DISCLAIMER*
+
 please do not bring this to multiworlds unless you know what you are doing.
+
 this apworld is still in its baby stages and is prone to bugs.
 
 especially because this is my first one.
