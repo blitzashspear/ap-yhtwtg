@@ -2,7 +2,7 @@
 
 *DISCLAIMER*
 
-please do not bring this to multiworlds unless you know what you are doing.
+please do not bring this to stable lobbies yet.
 
 this apworld is still in its baby stages and is prone to bugs.
 
