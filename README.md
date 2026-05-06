@@ -4,6 +4,8 @@
 please do not bring this to multiworlds unless you know what you are doing.
 this apworld is still in its baby stages and is prone to bugs.
 
+especially because this is my first one.
+
 *Requirements*
 * Archipelago 0.6.7 or later
 * A Windows [Steam installation](https://store.steampowered.com/app/286100/You_Have_to_Win_the_Game/) of You Have to Win the Game (it's free!)
