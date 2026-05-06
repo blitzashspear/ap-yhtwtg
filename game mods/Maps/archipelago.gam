@@ -1,0 +1,14 @@
+Title: Archipelago
+FullTitle: You Have to Win the Game
+DevTeam: blitzashspear
+DevLogo: phearts.bmp
+Author: blitzashspear
+URL: https://youtu.be/dQw4w9WgXcQ
+Description: Map edit to work with the archipelago manual.
+MajorVersion: 1
+MinorVersion: 0
+Map: yhtwtg.map
+Content: DefaultContent.ini
+Rooms: Rooms_Archipelago.xml
+StartX: -3
+StartY: 0

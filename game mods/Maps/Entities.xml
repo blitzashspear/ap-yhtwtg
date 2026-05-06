@@ -1,0 +1,192 @@
+<entity name="lift" type="platform"
+	speed="48"
+	texfile="platform.bmp" texname="Texture_Lift"
+	width="32" height="8"
+	boxwidth="31" boxheight="8"
+	z="-4"
+/>
+
+<entity name="pusher" type="platform"
+	speed="48"
+	texfile="pusher.bmp" texname="Texture_Pusher"
+	width="8" height="32"
+	boxwidth="8" boxheight="31"
+	z="-4"
+/>
+
+<entity name="crumbler" type="platform"
+	texfile="platform_break.bmp" texname="Texture_Crumbler"
+	width="32" height="8"
+	boxwidth="31" boxheight="8"
+	crumbles="true"
+	animframes="8" animtime="0.6"
+	z="-4"
+/>
+
+<entity name="gate" type="teleport"
+	texfile="gate.bmp" texname="Texture_Gate"
+	width="16" height="32"
+	boxwidth="12" boxheight="24"
+	animframes="8" animtime="0.6"
+	z="4"
+/>
+
+<entity name="bell" type="checkpoint"
+	texfile="bell.bmp" texname="Texture_Bell"
+	width="16" height="16" boxwidth="8" boxheight="16"
+	animframes="8" animtime="0.6"
+	x="4" y="8"
+	z="4"
+/>
+
+<entity name="cash" type="treasure"
+	texfile="cash.bmp" texname="Texture_Cash"
+	width="8" height="8"
+	boxwidth="8" boxheight="8"
+	x="4" y="4"
+	z="4"
+/>
+
+
+
+
+
+<entity name="orb_boots" type="powerup" subtype="doublejump"
+	texfile="orb_boots.bmp" texname="Texture_Orb_Boots"
+	width="16" height="16"
+	boxwidth="12" boxheight="12"
+	animframes="8" animtime="0.6"
+	z="4"
+/>
+
+<entity name="orb_gloves" type="powerup" subtype="walljump"
+	texfile="orb_gloves.bmp" texname="Texture_Orb_Gloves"
+	width="16" height="16"
+	boxwidth="12" boxheight="12"
+	animframes="8" animtime="0.6"
+	z="4"
+/>
+
+<entity name="orb_blue" type="powerup" subtype="blueswitch"
+	texfile="orb_blue.bmp" texname="Texture_Orb_Blue"
+	width="16" height="16"
+	boxwidth="12" boxheight="12"
+	animframes="8" animtime="0.6"
+	z="4"
+/>
+
+<entity name="orb_red" type="powerup" subtype="redswitch"
+	texfile="orb_red.bmp" texname="Texture_Orb_Red"
+	width="16" height="16"
+	boxwidth="12" boxheight="12"
+	animframes="8" animtime="0.6"
+	z="4"
+/>
+
+<entity name="orb_win" type="powerup" subtype="winorb"
+	texfile="orb_win.bmp" texname="Texture_Orb_Win"
+	width="16" height="16"
+	boxwidth="12" boxheight="12"
+	animframes="8" animtime="0.6"
+	z="4"
+/>
+
+<entity name="orb_lose" type="powerup" subtype="loseorb"
+	texfile="orb_lose.bmp" texname="Texture_Orb_Lose"
+	width="16" height="16"
+	boxwidth="12" boxheight="12"
+	animframes="8" animtime="0.6"
+	z="4"
+/>
+
+
+
+
+
+
+<entity name="meebs" type="hazard"
+	speed="96"
+	texfile="hazard_meebs.bmp" texname="Texture_Meebs"
+	width="8" height="8"
+	boxwidth="7" boxheight="7"
+	animframes="4" animtime="0.6"
+	z="-4"
+/>
+
+<entity name="jelly" type="hazard"
+	speed="64"
+	texfile="hazard_jelly.bmp" texname="Texture_Jelly"
+	width="16" height="16"
+	boxwidth="15" boxheight="15"
+	animframes="4" animtime="1.0"
+	z="-4"
+/>
+
+<entity name="bat" type="hazard"
+	speed="64"
+	texfile="hazard_bat.bmp" texname="Texture_Bat"
+	width="16" height="8"
+	boxwidth="15" boxheight="7"
+	animframes="4" animtime="0.6"
+	mirrored="true"
+	z="-4"
+/>
+
+<entity name="crab" type="hazard"
+	speed="64"
+	texfile="hazard_crab.bmp" texname="Texture_Crab"
+	width="16" height="8"
+	boxwidth="15" boxheight="7"
+	animframes="4" animtime="0.6"
+	mirrored="true"
+	z="-4"
+/>
+
+<entity name="snake" type="hazard"
+	speed="64"
+	texfile="hazard_snake.bmp" texname="Texture_Snake"
+	width="16" height="8"
+	boxwidth="15" boxheight="7"
+	animframes="4" animtime="0.6"
+	mirrored="true"
+	z="-4"
+/>
+
+<entity name="spore" type="hazard"
+	speed="64"
+	texfile="hazard_spore.bmp" texname="Texture_Spore"
+	width="16" height="16"
+	boxwidth="15" boxheight="15"
+	animframes="4" animtime="0.6"
+	z="-4"
+/>
+
+<entity name="spider" type="hazard"
+	speed="48"
+	texfile="hazard_spider.bmp" texname="Texture_Spider"
+	width="16" height="8"
+	boxwidth="15" boxheight="7"
+	animframes="4" animtime="1.2"
+	z="-4"
+/>
+
+<entity name="mini_spawner" type="spawner"
+	speed="96" rate="0.5" grav="0.0"
+	texfile="hazard_mini.bmp" texname="Texture_Mini"
+	width="8" height="8"
+	boxwidth="7" boxheight="7"
+	animframes="4" animtime="0.6"
+	lifetime="8.0" bounces="0"
+	z="-4"
+/>
+
+<entity name="plasm_spawner" type="spawner"
+	rate="0.5" stagger="0.0"
+	speed="144" grav="64.0"
+	texfile="hazard_plasm.bmp" texname="Texture_Plasm"
+	width="4" height="4"
+	boxwidth="3" boxheight="3"
+	animframes="2" animtime="0.3"
+	lifetime="8.0" bounces="2"
+	z="-4"
+/>
