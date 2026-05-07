@@ -84,7 +84,7 @@ class WinTheGameContext(CommonContext):
                     self.death_timer_address = self.get_data(self.player_data_address, DEATH_TIMER_OFFSET, "float")[0]
         
 
-    def on_deathlink(self):
+    def on_deathlink(self, data):
         if self.WinTheGame is None or self.death_timer_address is None:
             return
         self.WinTheGame.write_float(self.death_timer_address, 0.6)
