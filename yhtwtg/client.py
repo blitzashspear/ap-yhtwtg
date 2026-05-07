@@ -43,6 +43,8 @@ class WinTheGameContext(CommonContext):
 
     def __init__(self, server_address=None, password=None):
         super().__init__(server_address, password)
+
+    def initialize_game(self):
         try:
             self.WinTheGame = Pymem("TheGame.exe")
             # 32 bit program, all pointers are 4 bytes.
@@ -57,7 +59,9 @@ class WinTheGameContext(CommonContext):
         except:
             self.WinTheGame = None
             self.player_data_address = None
+            self.player_attributes_address = None
             self.room_addresses = None
+
 
     async def server_auth(self, password_requested=False):
         if password_requested and not self.password:
@@ -85,12 +89,12 @@ class WinTheGameContext(CommonContext):
         
 
     def on_deathlink(self, data):
-        if self.WinTheGame is None or self.death_timer_address is None:
+        if self.WinTheGame == None:
             return
         self.WinTheGame.write_float(self.death_timer_address, 0.6)
 
     def get_data(self, start, offset, data_type: str = "int") -> tuple:
-        if self.WinTheGame is None:
+        if self.WinTheGame == None:
             return None, None
         address = start + offset
         data = None
@@ -105,17 +109,18 @@ class WinTheGameContext(CommonContext):
         return address, data
     
     def get_current_room_xy(self) -> tuple[int, int]:
-        if self.WinTheGame is None or self.room_addresses is None:
+        if self.WinTheGame == None:
             return (0, 0)
         return (self.WinTheGame.read_int(self.room_addresses[0]), self.WinTheGame.read_int(self.room_addresses[1]))
 
     def get_current_room_name(self) -> str:
+        if self.WinTheGame == None:
+            return (0, 0)
         return self.get_data(self.WinTheGame.base_address, ROOM_NAME, "str")[1]
 
     def give_item(self, item: str) -> None:
-        if self.WinTheGame is None or self.player_data_address is None:
+        if self.WinTheGame == None:
             return
-        #TODO cache this on start up?
         if item == "Cerulean Aura":
             self.WinTheGame.write_uchar(self.get_data(self.player_data_address, CERULEAN_AURA_OFFSET, "byte")[0], 1)
         elif item == "Crimson Aura":
@@ -133,7 +138,7 @@ class WinTheGameContext(CommonContext):
             self.finished_game = True
 
     def teleport_player(self, x: int, y: int) -> None:
-        if self.WinTheGame is None or self.player_data_address is None:
+        if self.WinTheGame == None:
             return
         player_coords = self.get_data(self.player_data_address, PLAYER_COORDS, "int")[1]
         self.WinTheGame.write_float(self.get_data(player_coords, PLAYER_X, "float")[0], x)
@@ -141,7 +146,11 @@ class WinTheGameContext(CommonContext):
 
 async def watch_game(ctx: WinTheGameContext):
     #TODO change this line later so that WinTheGame can be defined later.
-    while not ctx.exit_event.is_set() and ctx.WinTheGame != None:
+    while not ctx.exit_event.is_set():
+        if ctx.WinTheGame == None:
+            ctx.initialize_game()
+            await asyncio.sleep(5)
+            continue
 
         if ctx.deathlinked:
             if "DeathLink" not in ctx.tags:
