@@ -1,5 +1,5 @@
 ITEM_IDS = {
-    #1-30 are items that will always be in the pool.
+    #1-30 are regular items.
     "Cerulean Aura": 1,
     "Crimson Aura": 2,
     "Springheel Boots": 3,
@@ -35,6 +35,10 @@ ITEM_IDS = {
     "Stop Jumping Trap": 32,
     "Secret Room Trap": 33,
     #other items.
+    "Left Spider Glove": 41,
+    "Right Spider Glove": 42,
+    "Unlock Teleporters": 43,
+    
     "Win The Game": 99,
     "Nothing": 100,
 }

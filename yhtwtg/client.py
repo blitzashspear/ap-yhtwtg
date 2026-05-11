@@ -2,25 +2,23 @@
 
 # Client start:
 # Make sure the campaign is set to "Archipelago". Using the default campaign will break locations. If the player goes to a different campaign, do not send any checks. i dont know where the campaign name is yet.
-# If the amount of items sent is not the same as the Amount of Treasure Found, do nothing.
-# Sending items:
-#     Link the newest treasure found to the id given to the location in treasure_ids.py.
-#     Add an exception for "Win The Game" that checks that the integer at Times Won is not 0. This triggers the goal.
+# If the amount of items sent is not the same as the Amount of Treasure Found (give or take a few), do nothing.
 
 # Receiving items:
-#     Lose The Game:
-#         Add 1 to the integer at Times Lost, kill, and teleport the player to "You Have to Start the Game" (x=-3, y=0). i dont know how to teleport the player to a different room.
-#     Stop Jumping Trap:
-#         Change the byte at Maximum Jumps to 0 for 5 seconds, then change it back to its previous value. 
-#     Secret Room Trap:
-#         Teleport the player to "Spiral Out" (x=3, y=-4) or to "The Books Will Not" (x=4, y=-5). They must either die or go to "Sadness" (x=8, y=-2) for 5 seconds xsto escape. i dont know how to do this.
-# """
+#     Add support for multiple traps.
+
+# LATER RELEASE - REWRITE LOGIC
+# Roomsanity
+# Edit logic to add a "Unlock Portals" item that allows for the player to go through portals. This will be done by hardcoding rooms and just not allowing the player to access certain room coordinates by instantly killing them.
+# i want to add password rando that would be dope
+
+# add UT support
 
 # what went wrong:
 # password room became flooded with garbage data when entering letter teleporters during a run.
 
 import asyncio
-from CommonClient import CommonContext, gui_enabled
+from CommonClient import CommonContext, gui_enabled, logger
 from kvui import GameManager
 from pymem import Pymem
 from NetUtils import ClientStatus
@@ -36,10 +34,13 @@ class WinTheGameContext(CommonContext):
     death_timer_address = None
     last_death: int = None
     WinTheGame: Pymem = None
-    player_data_address = None
     player_attributes_address = None
     room_addresses = None
     unlocked_letters = []
+    before_secret_room_data = ((None,None),(None,None)) # ((room_x, room_y), (player_x, player_y))
+    split_spider_gloves = False
+    has_left_glove = False
+    has_right_glove = False
 
     def __init__(self, server_address=None, password=None):
         super().__init__(server_address, password)
@@ -51,17 +52,41 @@ class WinTheGameContext(CommonContext):
             pointer = self.WinTheGame.base_address
             for offset in PLAYER_DATA_CHAIN:
                 pointer = self.WinTheGame.read_int(pointer + offset)
-            self.player_data_address = pointer
-            self.player_attributes_address = self.WinTheGame.read_int(pointer + PLAYER_ATTRIBUTES)
+            self.cerulean_aura_address = pointer + CERULEAN_AURA_OFFSET
+            self.crimson_aura_address = pointer + CRIMSON_AURA_OFFSET
+            self.springheel_boots_address = pointer + SPRINGHEEL_BOOTS_OFFSET
+            self.spider_gloves_address = pointer + SPIDER_GLOVES_OFFSET
+            self.death_timer_address = pointer + DEATH_TIMER_OFFSET
+            self.deaths_address = pointer + DEATHS_OFFSET
+            self.times_lost_address = pointer + TIMES_LOST_OFFSET
+            self.times_won_address = pointer + TIMES_WON_OFFSET
+            self.respawn_room_x_address = pointer + RESPAWN_ROOM_X_OFFSET
+            self.respawn_room_y_address = pointer + RESPAWN_ROOM_Y_OFFSET
+            self.respawn_player_x_address = pointer + RESPAWN_PLAYER_X_OFFSET
+            self.respawn_player_y_address = pointer + RESPAWN_PLAYER_Y_OFFSET
+            self.treasure_count_address = pointer + TREASURE_COUNT_OFFSET
+            self.treasure_vector_address = pointer + TREASURE_VECTOR_OFFSET
+            self.player_face_left_address = pointer + PLAYER_FACE_LEFT_OFFSET
+
+            player_attributes_address = self.WinTheGame.read_int(pointer + PLAYER_ATTRIBUTES)
+            self.on_wall_address = player_attributes_address + ON_WALL_OFFSET
+            self.max_jumps_address = player_attributes_address + MAX_JUMPS_OFFSET
+            self.can_wall_jump_address = player_attributes_address + CAN_WALL_JUMP_OFFSET
+
+            player_coordinates = self.WinTheGame.read_int(pointer + PLAYER_COORDS)
+            self.player_x_address = player_coordinates + PLAYER_X_OFFSET
+            self.player_y_address = player_coordinates + PLAYER_Y_OFFSET
 
             room_pointer = self.WinTheGame.read_int(self.WinTheGame.base_address + ROOM_DATA)
-            self.room_addresses = (room_pointer + ROOM_X, room_pointer + ROOM_Y)
+            self.room_x_address = room_pointer + ROOM_X_OFFSET
+            self.room_y_address = room_pointer + ROOM_Y_OFFSET
+
+            self.room_name_address = self.WinTheGame.base_address + ROOM_NAME_OFFSET
+
         except:
             self.WinTheGame = None
-            self.player_data_address = None
             self.player_attributes_address = None
             self.room_addresses = None
-
 
     async def server_auth(self, password_requested=False):
         if password_requested and not self.password:
@@ -80,92 +105,103 @@ class WinTheGameContext(CommonContext):
         self.ui_task = asyncio.create_task(self.ui.async_run(), name="UI")
 
     def on_package(self, cmd, args):
+        # if i add shit here in the future, go to world.py, fill_slot_data and update that too
         if cmd in {"Connected"}:
             if args["slot_data"]["death_link"]:
                 self.deathlinked = True
                 self.deathlink_amnesty = args["slot_data"]["death_link_amnesty"]
-                if self.WinTheGame:
-                    self.death_timer_address = self.get_data(self.player_data_address, DEATH_TIMER_OFFSET, "float")[0]
+            if args["slot_data"]["split_spider_gloves"]:
+                self.split_spider_gloves = True
         
-
     def on_deathlink(self, data):
-        if self.WinTheGame == None:
-            return
         self.WinTheGame.write_float(self.death_timer_address, 0.6)
-
-    def get_data(self, start, offset, data_type: str = "int") -> tuple:
-        if self.WinTheGame == None:
-            return None, None
-        address = start + offset
-        data = None
-        if data_type == "int":
-            data = self.WinTheGame.read_int(address)
-        elif data_type == "byte":
-            data = self.WinTheGame.read_bytes(address, 1)
-        elif data_type == "float":
-            data = self.WinTheGame.read_float(address)
-        elif data_type == "str":
-            data = self.WinTheGame.read_string(address, 32)
-        return address, data
     
-    def get_current_room_xy(self) -> tuple[int, int]:
-        if self.WinTheGame == None:
-            return (0, 0)
-        return (self.WinTheGame.read_int(self.room_addresses[0]), self.WinTheGame.read_int(self.room_addresses[1]))
-
-    def get_current_room_name(self) -> str:
-        if self.WinTheGame == None:
-            return (0, 0)
-        return self.get_data(self.WinTheGame.base_address, ROOM_NAME, "str")[1]
+    def get_current_room_coords(self) -> tuple[int, int]:
+        return (self.WinTheGame.read_int(self.room_x_address), self.WinTheGame.read_int(self.room_y_address))
+    
+    def get_player_coords(self) -> tuple[float, float]:
+        return (self.WinTheGame.read_float(self.player_x_address), self.WinTheGame.read_float(self.player_y_address))
 
     def give_item(self, item: str) -> None:
-        if self.WinTheGame == None:
-            return
         if item == "Cerulean Aura":
-            self.WinTheGame.write_uchar(self.get_data(self.player_data_address, CERULEAN_AURA_OFFSET, "byte")[0], 1)
+            self.WinTheGame.write_uchar(self.cerulean_aura_address, 1)
         elif item == "Crimson Aura":
-            self.WinTheGame.write_uchar(self.get_data(self.player_data_address, CRIMSON_AURA_OFFSET, "byte")[0], 1)
+            self.WinTheGame.write_uchar(self.crimson_aura_address, 1)
         elif item == "Springheel Boots":
-            self.WinTheGame.write_uchar(self.get_data(self.player_data_address, SPRINGHEEL_BOOTS_OFFSET, "byte")[0], 1)
-            self.WinTheGame.write_uchar(self.get_data(self.player_attributes_address, MAX_JUMPS_OFFSET, "byte")[0], 2)
+            self.WinTheGame.write_uchar(self.springheel_boots_address, 1)
+            self.WinTheGame.write_int(self.max_jumps_address, 2)
         elif item == "Spider Gloves":
-            self.WinTheGame.write_uchar(self.get_data(self.player_data_address, SPIDER_GLOVES_OFFSET, "byte")[0], 1)
-            self.WinTheGame.write_uchar(self.get_data(self.player_attributes_address, CAN_WALL_JUMP_OFFSET, "byte")[0], 1)
+            self.WinTheGame.write_uchar(self.spider_gloves_address, 1)
+            self.WinTheGame.write_uchar(self.can_wall_jump_address, 1)
+        elif item == "Left Spider Glove":
+            self.has_left_glove = True
+        elif item == "Right Spider Glove":
+            self.has_right_glove = True
         elif "Letter" in item:
             self.unlocked_letters += item[-1]
-        #TODO add lose the game and traps
+        #TODO traps can only be recieved once. At some point i want to add support for multiple traps but for now I just ignore duplicates.
+        elif item == "Lose The Game":
+            times_lost_value = self.WinTheGame.read_int(self.times_lost_address)
+            if times_lost_value % 2 == 0:
+                self.WinTheGame.write_int(self.times_lost_address, times_lost_value+1)
+                self.teleport_player_to_room(-3, 0, 76.0, 153.985) # You Have to Start the Game
+        elif item == "Stop Jumping Trap":
+            asyncio.create_task(self.apply_stop_jumping_trap())
+        elif item == "Secret Room Trap":
+            # hundreds place will be used to make sure the trap is only applied once.
+            times_lost_value = self.WinTheGame.read_int(self.times_lost_address)
+            if times_lost_value//100 == 0:
+                self.before_secret_room_data = (self.get_current_room_coords(), self.get_player_coords())
+                self.WinTheGame.write_int(self.times_lost_address, times_lost_value+100)
+                self.teleport_player_to_room(3, -4, 73.0, 76.0) # Spiral Out
+
         elif item == "Win The Game":
             self.finished_game = True
 
-    def teleport_player(self, x: int, y: int) -> None:
-        if self.WinTheGame == None:
-            return
-        player_coords = self.get_data(self.player_data_address, PLAYER_COORDS, "int")[1]
-        self.WinTheGame.write_float(self.get_data(player_coords, PLAYER_X, "float")[0], x)
-        self.WinTheGame.write_float(self.get_data(player_coords, PLAYER_Y, "float")[0], y)
+    async def apply_stop_jumping_trap(self):
+        # tens place will be used to make sure the trap is only applied once.
+        times_lost_value = self.WinTheGame.read_int(self.times_lost_address)
+        if times_lost_value//10 == 0:
+            max_jumps_value = self.WinTheGame.read_int(self.max_jumps_address)
+            self.WinTheGame.write_int(self.times_lost_address, times_lost_value+10)
+            self.WinTheGame.write_int(self.max_jumps_address, 0)
+            await asyncio.sleep(5)
+            self.WinTheGame.write_int(self.max_jumps_address, max_jumps_value)
+
+    def teleport_player(self, player_x: float, player_y: float) -> None:
+        self.WinTheGame.write_float(self.player_x_address, player_x)
+        self.WinTheGame.write_float(self.player_y_address, player_y)
+
+    def teleport_player_to_room(self, room_x: int, room_y: int, player_x: float, player_y: float) -> None:
+        # instead of doing something logical like hijacking the room compile function, i am going to abuse the fact that the respawn location isnt necessarily bound to a bell and can be put anywhere.
+        self.WinTheGame.write_float(self.death_timer_address, 0.01)
+        self.WinTheGame.write_int(self.respawn_room_x_address, room_x)
+        self.WinTheGame.write_int(self.respawn_room_y_address, room_y)
+        self.WinTheGame.write_float(self.respawn_player_x_address, player_x)
+        self.WinTheGame.write_float(self.respawn_player_y_address, player_y)
 
 async def watch_game(ctx: WinTheGameContext):
-    #TODO change this line later so that WinTheGame can be defined later.
+    #TODO i fear that joining with an already completed save will destroy the multiworld. i dont think i have a guard for this.
     while not ctx.exit_event.is_set():
         if ctx.WinTheGame == None:
             ctx.initialize_game()
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
             continue
 
         if ctx.deathlinked:
             if "DeathLink" not in ctx.tags:
                 await ctx.update_death_link(True)
-            deaths = ctx.get_data(ctx.player_data_address, DEATHS_OFFSET, "int")[1]
+            deaths = ctx.WinTheGame.read_int(ctx.deaths_address)
             if deaths > 0 and deaths % ctx.deathlink_amnesty == 0 and deaths != ctx.last_death:
                 await ctx.send_death(f"{ctx.player_names[ctx.slot]} died in The Game.")
                 ctx.last_death = deaths
 
-        treasure_count = ctx.get_data(ctx.player_data_address, TREASURE_COUNT_OFFSET, "int")[1]
-        treasure_vector = ctx.get_data(ctx.player_data_address, TREASURE_VECTOR_OFFSET, "int")[1]
+        treasure_count = ctx.WinTheGame.read_int(ctx.treasure_count_address)
+        treasure_vector = ctx.WinTheGame.read_int(ctx.treasure_vector_address)
         treasures = []
         for i in range(treasure_count):
-            treasures.append(ctx.get_data(treasure_vector, 4*i, "int")[1]+1)
-        if ctx.get_data(ctx.player_data_address, TIMES_WON_OFFSET, "int")[1] != 0: #GOAL
+            treasures.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
+        if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
             treasures.append(99)
         await ctx.check_locations(treasures)
 
@@ -174,9 +210,24 @@ async def watch_game(ctx: WinTheGameContext):
             if item_id in recieved_item_ids:
                 ctx.give_item(item)
 
-        if ctx.get_current_room_xy() == (0, -4):
+        if ctx.split_spider_gloves:
+                if ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1:
+                    ctx.WinTheGame.write_uchar(ctx.can_wall_jump_address, 1)
+                elif ctx.has_right_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 0:
+                    ctx.WinTheGame.write_uchar(ctx.can_wall_jump_address, 1)
+                else:
+                    ctx.WinTheGame.write_uchar(ctx.on_wall_address, 0)
+                    ctx.WinTheGame.write_uchar(ctx.can_wall_jump_address, 0)
+
+        current_room = ctx.get_current_room_coords()
+        if current_room in SECRET_ROOM_COORDS:
+            ctx.WinTheGame.write_int(ctx.respawn_room_x_address, ctx.before_secret_room_data[0][0])
+            ctx.WinTheGame.write_int(ctx.respawn_room_y_address, ctx.before_secret_room_data[0][1])
+            ctx.WinTheGame.write_float(ctx.respawn_player_x_address, ctx.before_secret_room_data[1][0])
+            ctx.WinTheGame.write_float(ctx.respawn_player_y_address, ctx.before_secret_room_data[1][1])
+        elif current_room == (0, -4):
             letter_mismatch = False
-            room_name = re.sub(r'[^A-Z]', "", ctx.get_current_room_name())
+            room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 32))
             for letter in room_name:
                 if letter not in ctx.unlocked_letters:
                     letter_mismatch = True
@@ -186,7 +237,7 @@ async def watch_game(ctx: WinTheGameContext):
         if ctx.finished_game:
             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
 
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)
 
 def launch():
     async def main():

@@ -20,8 +20,8 @@ def create_locations(world: WinTheGameWorld) -> None:
 
     starting_area_locations = [
         "Abandoned Alcove",
-        "Arcane Vocabulary (Bottom)",
-        "Arcane Vocabulary (Top)",
+        "Arcane Vocabulary - Bottom",
+        "Arcane Vocabulary - Top",
         "Artisan Stone Walls",
         "Bat Cave",
         "Cave In",
@@ -29,12 +29,12 @@ def create_locations(world: WinTheGameWorld) -> None:
         "Circular Logic",
         "Cognitive Resonance",
         "Contrived Lock/Key Mechanisms",
-        "Covert Operators (Left)",
-        "Covert Operators (Right)",
+        "Covert Operators - Left",
+        "Covert Operators - Right",
         "Crimson Aura",
         "Danger",
-        "Don't Be Hasty (Bottom)",
-        "Don't Be Hasty (Top)",
+        "Don't Be Hasty - Bottom",
+        "Don't Be Hasty - Top",
         "Euclid Shrugged",
         "Great Hall",
         "Hops and Skips",
@@ -53,8 +53,8 @@ def create_locations(world: WinTheGameWorld) -> None:
         "Snake, It's a Snake",
         "Subterranea",
         "Swimming Upstream",
-        "Taking the Long Way (Left)",
-        "Taking the Long Way (Right)",
+        "Taking the Long Way - Left",
+        "Taking the Long Way - Right",
         "The Proper Motivation",
         "Tower of Regrets",
         "Tower of Sorrows",
@@ -69,8 +69,8 @@ def create_locations(world: WinTheGameWorld) -> None:
         "Aqueous Humor",
         "Avalon Calling",
         "Descent",
-        "Forgotten Tunnels (Left)",
-        "Forgotten Tunnels (Right)",
+        "Forgotten Tunnels - Left",
+        "Forgotten Tunnels - Right",
         "Hidden Crevasse",
         "Like Ivy, Twisting",
         "Secret Passage",
@@ -81,8 +81,8 @@ def create_locations(world: WinTheGameWorld) -> None:
     teleporter_area.add_locations(get_location_names_with_ids(teleporter_area_locations), WinTheGameLocation)
 
     castle_area_outer_locations = [
-        "Attic Storeroom (Bottom)",
-        "Don't Be Hasty (Bottom)",
+        "Attic Storeroom - Bottom",
+        "Don't Be Hasty - Bottom",
         "Great Hall",
         "Spider Gloves",
         "Vestibule"
@@ -91,7 +91,7 @@ def create_locations(world: WinTheGameWorld) -> None:
 
     castle_area_inner_locations = [
         "An Even 0x80",
-        "Attic Storeroom (Top)",
+        "Attic Storeroom - Top",
         "Leap of Faith",
         "Not Worth It!",
         "The Floor Is Lava"
@@ -103,8 +103,8 @@ def create_locations(world: WinTheGameWorld) -> None:
         "Eponymous",
         "Hardcore Prawn",
         "Playing with Fire",
-        "Secret Cat Level (Left)",
-        "Secret Cat Level (Right)",
+        "Secret Cat Level - Left",
+        "Secret Cat Level - Right",
         "The Coin and the Courage",
         "You Have to Start the Game"
     ]

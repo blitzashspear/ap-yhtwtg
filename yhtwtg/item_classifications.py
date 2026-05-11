@@ -33,6 +33,10 @@ ITEM_CLASSIFICATIONS = {
     "Letter Z": ItemClassification.filler,
     "Lose The Game": ItemClassification.trap,
     "Stop Jumping Trap": ItemClassification.trap,
+    "Secret Room Trap": ItemClassification.trap,
+    "Left Spider Glove": ItemClassification.progression,
+    "Right Spider Glove": ItemClassification.progression,
+    "Unlock Teleporters": ItemClassification.progression,
     "Win The Game": ItemClassification.progression,
     "Nothing": ItemClassification.filler,
 }

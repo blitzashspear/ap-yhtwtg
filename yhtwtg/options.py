@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from Options import PerGameCommonOptions, Range, Toggle, DeathLink
 
-#TODO ALL OPTIONS
+#TODO roomsanity and localnothing percentage unimplemented
+#TODO new ideas: freeze trap.
 class RoomSanity(Toggle):
     """
-    Make each room a location. Currently does nothing.
+    Make each room a check. Currently does nothing.
     """
     display_name = "Room Sanity"
     default = False
@@ -24,25 +25,37 @@ class DeathLinkAmnesty(Range):
 
 class ShuffleLoseTheGame(Toggle):
     """
-    Shuffle a "Lose The Game" item that teleports you to the starting room. Currently does nothing.
+    Adds a "Lose The Game" trap that teleports you to the starting room.
     """
     display_name = "Shuffle Lose The Game"
     default = True
 
-class StopJumpingTrapPercentage(Range):
+class ShuffleStopJumpingTrap(Toggle):
     """
-    Adds traps that remove your ability to jump for a short time. Amount is based on percentage of remaining filler items. Currently does nothing.
+    Adds a trap that removes your ability to jump for a short time.
     """
-    display_name = "Stop Jumping Trap Percentage"
-    default = 5
-    range_start = 0
-    range_end = 100
+    display_name = "Shuffle Stop Jumping Trap"
+    default = False
 
-class TeleportToSecretRoomsTrap(Toggle):
+class ShuffleSecretRoomsTrap(Toggle):
     """
-    Adds a trap that teleports you to the secret rooms included in the game. Currently does nothing.
+    Adds a trap that teleports you to the secret rooms included in the game.
     """
-    display_name = "Teleport To Secret Rooms Trap"
+    display_name = "Shuffle Secret Rooms Trap"
+    default = False
+
+class SplitSpiderGloves(Toggle):
+    """
+    Split the Spider Gloves into left and right items.
+    """
+    display_name = "Split Spider Gloves"
+    default = False
+
+class RequireUnlockTeleporters(Toggle):
+    """
+    Require an "Unlock Teleporters" item to use teleporters. Currently does nothing.
+    """
+    display_name = "Require Unlock Teleporters"
     default = False
 
 class LocalNothingPercentage(Range):
@@ -56,10 +69,12 @@ class LocalNothingPercentage(Range):
 
 @dataclass
 class WinTheGameOptions(PerGameCommonOptions):
-    #room_sanity: RoomSanity
+    # room_sanity: RoomSanity
     death_link: WinTheGameDeathLink
     death_link_amnesty: DeathLinkAmnesty
-    #shuffle_lose_the_game: ShuffleLoseTheGame
-    #stop_jumping_trap_percentage: StopJumpingTrapPercentage
-    #teleport_to_secret_rooms_trap: TeleportToSecretRoomsTrap
-    #local_nothing_percentage: LocalNothingPercentage
+    shuffle_lose_the_game: ShuffleLoseTheGame
+    shuffle_stop_jumping_trap: ShuffleStopJumpingTrap
+    shuffle_secret_rooms_trap: ShuffleSecretRoomsTrap
+    split_spider_gloves: SplitSpiderGloves
+    # require_unlock_teleporters: RequireUnlockTeleporters
+    # local_nothing_percentage: LocalNothingPercentage

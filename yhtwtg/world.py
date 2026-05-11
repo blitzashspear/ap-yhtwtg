@@ -37,8 +37,8 @@ class WinTheGameWorld(World):
         return "Nothing"
     
     def fill_slot_data(self):
-        #TODO figure this out so deathlink shows up on the client.
         return {
             "death_link": bool(self.options.death_link),
-            "death_link_amnesty": int(self.options.death_link_amnesty)
+            "death_link_amnesty": int(self.options.death_link_amnesty),
+            "split_spider_gloves": bool(self.options.split_spider_gloves),
         }

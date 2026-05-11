@@ -19,24 +19,26 @@ def create_all_items(world: WinTheGameWorld) -> None:
     itempool.append(world.create_item("Cerulean Aura"))
     itempool.append(world.create_item("Crimson Aura"))
     itempool.append(world.create_item("Springheel Boots"))
-    itempool.append(world.create_item("Spider Gloves"))
+    if world.options.split_spider_gloves:
+        itempool.append(world.create_item("Left Spider Glove"))
+        itempool.append(world.create_item("Right Spider Glove"))
+    else:
+        itempool.append(world.create_item("Spider Gloves"))
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
         itempool.append(world.create_item(f"Letter {letter}"))
 
-    # if world.options.shuffle_lose_the_game:
-    #     itempool.append(world.create_item("Lose The Game"))
-    # if world.options.teleport_to_secret_rooms_trap:
-    #     itempool.append(world.create_item("Secret Room Trap"))  
+    if world.options.shuffle_lose_the_game:
+        itempool.append(world.create_item("Lose The Game"))
 
-    def get_unfilled_locations_count():
-        return len(world.multiworld.get_unfilled_locations(world.player))
-        
-    # for _ in range(int(get_unfilled_locations_count()*world.options.stop_jumping_trap_percentage/100)):
-    #     itempool.append(world.create_item("Stop Jumping Trap"))
+    if world.options.shuffle_secret_rooms_trap:
+        itempool.append(world.create_item("Secret Room Trap"))  
+
+    if world.options.shuffle_stop_jumping_trap:
+        itempool.append(world.create_item("Stop Jumping Trap"))
 
     #TODO make Nothing items respect world.options.local_nothing_percentage
     number_of_items = len(itempool)
-    needed_number_of_filler_items = get_unfilled_locations_count() - number_of_items
+    needed_number_of_filler_items = len(world.multiworld.get_unfilled_locations(world.player)) - number_of_items
     itempool += [world.create_filler() for _ in range(needed_number_of_filler_items)]
 
     world.multiworld.itempool += itempool
