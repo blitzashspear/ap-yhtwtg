@@ -68,7 +68,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         set_rule(world.get_location("KISS Principle - Treasure"), lambda state: state.has("Spider Gloves", world.player))
         set_rule(world.get_location("Leap of Faith - Treasure"), lambda state: state.has("Spider Gloves", world.player))
         set_rule(world.get_location("Maps and Legends - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Never Could See Any Other Way - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves"), world.player))
+        set_rule(world.get_location("Never Could See Any Other Way - Treasure"), lambda state: state.has("Cerulean Aura", world.player) or state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
         set_rule(world.get_location("Playing with Fire - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
         set_rule(world.get_location("Prawn Shot First - Treasure"), lambda state: state.has("Crimson Aura", world.player) and state.has_any(("Springheel Boots", "Spider Gloves"), world.player))
         set_rule(world.get_location("Snake, It's a Snake - Treasure"), lambda state: state.has("Spider Gloves", world.player))
