@@ -138,7 +138,7 @@
 		destwx="-1" destwy="-3" destrx="200" destry="104" />
 </room>
 
-<room x="-1" y="-3" title="Speak Now..." listening="true" word="arc" tx="-1" ty="-2">
+<room x="-1" y="-3" title="Speak Now..." tx="-1" ty="-2">
 	<entity template="gate" x="296" y="144"
 		destwx="0" destwy="-3" destrx="24" destry="152" />
 	<entity template="gate" x="24" y="96"
@@ -502,7 +502,9 @@
 
 <room x="6" y="5" title="Bring a Mallet" />
 
-<room x="7" y="4" title="Feline Foreshadowing" />
+<room x="7" y="4" title="Feline Foreshadowing">
+	<entity template="gate" x="60" y="120" destwx="2" destwy="0" destrx="284" destry="60" />
+</room>
 
 <room x="-1" y="-4" dyntitle="true" dynhints="true">
 	<entity template="gate" x="80" y="32" destwx="-1" destwy="-4" destrx="36" destry="104" dynchar="A" />
