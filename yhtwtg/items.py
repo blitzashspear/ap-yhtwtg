@@ -13,7 +13,7 @@ def create_item_with_correct_classification(world: WinTheGameWorld, item_name: s
     return WinTheGameItem(item_name, ITEM_CLASSIFICATIONS[item_name], ITEM_IDS[item_name], world.player)
 
 def create_all_items(world: WinTheGameWorld) -> None:
-    world.get_location("Eponymous").place_locked_item(create_item_with_correct_classification(world, "Win The Game"))
+    world.get_location("Eponymous - Win the Game").place_locked_item(create_item_with_correct_classification(world, "Win the Game"))
     itempool = []
 
     itempool.append(world.create_item("Cerulean Aura"))
@@ -24,6 +24,7 @@ def create_all_items(world: WinTheGameWorld) -> None:
         itempool.append(world.create_item("Right Spider Glove"))
     else:
         itempool.append(world.create_item("Spider Gloves"))
+        
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
         itempool.append(world.create_item(f"Letter {letter}"))
 
@@ -35,6 +36,9 @@ def create_all_items(world: WinTheGameWorld) -> None:
 
     if world.options.shuffle_stop_jumping_trap:
         itempool.append(world.create_item("Stop Jumping Trap"))
+    
+    if world.options.require_unlock_teleporters:
+        itempool.append(world.create_item("Unlock Teleporters"))
 
     #TODO make Nothing items respect world.options.local_nothing_percentage
     number_of_items = len(itempool)

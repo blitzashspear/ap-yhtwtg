@@ -38,7 +38,6 @@ ITEM_IDS = {
     "Left Spider Glove": 41,
     "Right Spider Glove": 42,
     "Unlock Teleporters": 43,
-    
-    "Win The Game": 99,
+    "Win the Game": 99,
     "Nothing": 100,
 }

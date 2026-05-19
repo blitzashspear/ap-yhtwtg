@@ -1,21 +1,13 @@
 # remaining to do
-
-# Client start:
-# Make sure the campaign is set to "Archipelago". Using the default campaign will break locations. If the player goes to a different campaign, do not send any checks. i dont know where the campaign name is yet.
-# If the amount of items sent is not the same as the Amount of Treasure Found (give or take a few), do nothing.
-
 # Receiving items:
-#     Add support for multiple traps.
+# Add support for multiple traps.
 
 # LATER RELEASE - REWRITE LOGIC
 # Roomsanity
-# Edit logic to add a "Unlock Portals" item that allows for the player to go through portals. This will be done by hardcoding rooms and just not allowing the player to access certain room coordinates by instantly killing them.
 # i want to add password rando that would be dope
 
-# add UT support
-
-# what went wrong:
-# password room became flooded with garbage data when entering letter teleporters during a run.
+# add UT yaml-less support
+# add a flag for giving the player an item to reduce spamming of pymem functions. that lags the game.
 
 import asyncio
 from CommonClient import CommonContext, gui_enabled, logger
@@ -34,13 +26,12 @@ class WinTheGameContext(CommonContext):
     death_timer_address = None
     last_death: int = None
     WinTheGame: Pymem = None
-    player_attributes_address = None
-    room_addresses = None
     unlocked_letters = []
     before_secret_room_data = ((None,None),(None,None)) # ((room_x, room_y), (player_x, player_y))
     split_spider_gloves = False
     has_left_glove = False
     has_right_glove = False
+    teleporters_locked = False
 
     def __init__(self, server_address=None, password=None):
         super().__init__(server_address, password)
@@ -80,13 +71,12 @@ class WinTheGameContext(CommonContext):
             room_pointer = self.WinTheGame.read_int(self.WinTheGame.base_address + ROOM_DATA)
             self.room_x_address = room_pointer + ROOM_X_OFFSET
             self.room_y_address = room_pointer + ROOM_Y_OFFSET
+            self.total_treasure_address = room_pointer + TOTAL_TREASURE_OFFSET
 
             self.room_name_address = self.WinTheGame.base_address + ROOM_NAME_OFFSET
 
         except:
             self.WinTheGame = None
-            self.player_attributes_address = None
-            self.room_addresses = None
 
     async def server_auth(self, password_requested=False):
         if password_requested and not self.password:
@@ -112,6 +102,8 @@ class WinTheGameContext(CommonContext):
                 self.deathlink_amnesty = args["slot_data"]["death_link_amnesty"]
             if args["slot_data"]["split_spider_gloves"]:
                 self.split_spider_gloves = True
+            if args["slot_data"]["require_unlock_teleporters"]:
+                self.teleporters_locked = True
         
     def on_deathlink(self, data):
         self.WinTheGame.write_float(self.death_timer_address, 0.6)
@@ -133,7 +125,7 @@ class WinTheGameContext(CommonContext):
         elif item == "Spider Gloves":
             self.WinTheGame.write_uchar(self.spider_gloves_address, 1)
             self.WinTheGame.write_uchar(self.can_wall_jump_address, 1)
-        elif item == "Left Spider Glove":
+        elif item == "Left Spider Glove": #TODO spamming left and right can confuse the game. might be a problem with the 0.1.0 before i changed the timer.
             self.has_left_glove = True
         elif item == "Right Spider Glove":
             self.has_right_glove = True
@@ -154,8 +146,9 @@ class WinTheGameContext(CommonContext):
                 self.before_secret_room_data = (self.get_current_room_coords(), self.get_player_coords())
                 self.WinTheGame.write_int(self.times_lost_address, times_lost_value+100)
                 self.teleport_player_to_room(3, -4, 73.0, 76.0) # Spiral Out
-
-        elif item == "Win The Game":
+        elif item == "Unlock Teleporters":
+            self.teleporters_locked = False
+        elif item == "Win the Game":
             self.finished_game = True
 
     async def apply_stop_jumping_trap(self):
@@ -188,12 +181,19 @@ async def watch_game(ctx: WinTheGameContext):
             await asyncio.sleep(1)
             continue
 
+        if ctx.WinTheGame.read_int(ctx.total_treasure_address) != 68: # Campaign check. The original campaign only has 64. Unless someone uses a campaign with 68 treasures its fine.
+            logger.info("Please use the Archipelago campaign.")
+            await asyncio.sleep(5)
+            continue
+
+        current_room = ctx.get_current_room_coords()
+
         if ctx.deathlinked:
             if "DeathLink" not in ctx.tags:
                 await ctx.update_death_link(True)
             deaths = ctx.WinTheGame.read_int(ctx.deaths_address)
             if deaths > 0 and deaths % ctx.deathlink_amnesty == 0 and deaths != ctx.last_death:
-                await ctx.send_death(f"{ctx.player_names[ctx.slot]} died in The Game.")
+                await ctx.send_death(f"{ctx.player_names[ctx.slot]} died in the Game traversing {ctx.WinTheGame.read_string(ctx.room_name_address, 50)}.")
                 ctx.last_death = deaths
 
         treasure_count = ctx.WinTheGame.read_int(ctx.treasure_count_address)
@@ -211,23 +211,30 @@ async def watch_game(ctx: WinTheGameContext):
                 ctx.give_item(item)
 
         if ctx.split_spider_gloves:
-                if ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1:
-                    ctx.WinTheGame.write_uchar(ctx.can_wall_jump_address, 1)
-                elif ctx.has_right_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 0:
+                if (ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1) or (ctx.has_right_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 0):
                     ctx.WinTheGame.write_uchar(ctx.can_wall_jump_address, 1)
                 else:
                     ctx.WinTheGame.write_uchar(ctx.on_wall_address, 0)
                     ctx.WinTheGame.write_uchar(ctx.can_wall_jump_address, 0)
 
-        current_room = ctx.get_current_room_coords()
+        if ctx.teleporters_locked:
+            if current_room == (-3, 4): # Rawr!
+                if ctx.WinTheGame.read_float(ctx.player_x_address) < 185.0:
+                    ctx.WinTheGame.write_float(ctx.player_x_address, 185.0)
+            elif current_room == (-2, -2): # Point of No Return
+                if ctx.WinTheGame.read_float(ctx.player_x_address) < 50.0:
+                    ctx.WinTheGame.write_float(ctx.player_x_address, 50.0)
+            elif current_room == (6, 4): # Rough Landing:
+                ctx.WinTheGame.write_float(ctx.death_timer_address, 0.01)
+
         if current_room in SECRET_ROOM_COORDS:
             ctx.WinTheGame.write_int(ctx.respawn_room_x_address, ctx.before_secret_room_data[0][0])
             ctx.WinTheGame.write_int(ctx.respawn_room_y_address, ctx.before_secret_room_data[0][1])
             ctx.WinTheGame.write_float(ctx.respawn_player_x_address, ctx.before_secret_room_data[1][0])
             ctx.WinTheGame.write_float(ctx.respawn_player_y_address, ctx.before_secret_room_data[1][1])
-        elif current_room == (0, -4):
+        elif current_room == (0, -4): # Password Room (Middle)
             letter_mismatch = False
-            room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 32))
+            room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 50))
             for letter in room_name:
                 if letter not in ctx.unlocked_letters:
                     letter_mismatch = True
@@ -236,7 +243,6 @@ async def watch_game(ctx: WinTheGameContext):
 
         if ctx.finished_game:
             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
-
         await asyncio.sleep(0.1)
 
 def launch():

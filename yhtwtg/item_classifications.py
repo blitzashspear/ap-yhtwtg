@@ -37,6 +37,6 @@ ITEM_CLASSIFICATIONS = {
     "Left Spider Glove": ItemClassification.progression,
     "Right Spider Glove": ItemClassification.progression,
     "Unlock Teleporters": ItemClassification.progression,
-    "Win The Game": ItemClassification.progression,
+    "Win the Game": ItemClassification.progression,
     "Nothing": ItemClassification.filler,
 }
