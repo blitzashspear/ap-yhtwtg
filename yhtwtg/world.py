@@ -38,9 +38,9 @@ class WinTheGameWorld(World):
     
     def fill_slot_data(self):
         return {
-            "death_link": self.options.death_link,
-            "death_link_amnesty": self.options.death_link_amnesty,
-            "split_spider_gloves": self.options.split_spider_gloves,
-            "require_unlock_teleporters": self.options.require_unlock_teleporters,
-            "logic_difficulty": self.options.logic_difficulty,
+            "death_link": self.options.death_link.value,
+            "death_link_amnesty": self.options.death_link_amnesty.value,
+            "split_spider_gloves": self.options.split_spider_gloves.value,
+            "require_unlock_teleporters": self.options.require_unlock_teleporters.value,
+            "logic_difficulty": self.options.logic_difficulty.value,
         }

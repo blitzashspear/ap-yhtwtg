@@ -10,10 +10,6 @@ class RoomSanity(Toggle):
     display_name = "Room Sanity"
     default = False
 
-class WinTheGameDeathLink(DeathLink):
-    __doc__ = DeathLink.__doc__
-    default = False
-
 class DeathLinkAmnesty(Range):
     """
     Amount of deaths before sending a death link.
@@ -81,7 +77,7 @@ class LogicDifficullty(Choice):
 @dataclass
 class WinTheGameOptions(PerGameCommonOptions):
     # room_sanity: RoomSanity
-    death_link: WinTheGameDeathLink
+    death_link: DeathLink
     death_link_amnesty: DeathLinkAmnesty
     shuffle_lose_the_game: ShuffleLoseTheGame
     shuffle_stop_jumping_trap: ShuffleStopJumpingTrap
