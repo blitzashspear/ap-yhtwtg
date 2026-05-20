@@ -307,6 +307,7 @@
 <room x="3" y="6" title="yeah but why u jelly tho">
 	<entity template="jelly" x="240" y="96" dx="0" dy="1" />
 	<entity template="jelly" x="120" y="96" dx="0" dy="-1" />
+	<entity template="gate" x="200", y="150", destwx="-3", destwy="0", destrx="150", destry="150" />
 </room>
 
 <room x="3" y="5" title="Abandoned Alcove">

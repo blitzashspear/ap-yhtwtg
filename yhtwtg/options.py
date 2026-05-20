@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from Options import PerGameCommonOptions, Range, Toggle, DeathLink, Choice
 
 #TODO roomsanity and localnothing percentage unimplemented
-#TODO new ideas: freeze trap.
+#TODO new ideas: freeze trap, speedup trap
 class RoomSanity(Toggle):
     """
     Make each room a location. Currently does nothing.
@@ -67,12 +67,15 @@ class LocalNothingPercentage(Range):
     range_start = 0
     range_end = 90
 
-class HarderLogicDifficullty(Toggle):
+class LogicDifficullty(Choice):
     """
     Will place items with very hard jumps into logic.
     """
-    display_name = "Harder Logic Difficulty"
+    display_name = "Logic Difficulty"
     default = False
+    option_normal = 0
+    option_hard = 1
+    option_extreme = 2
 
 
 @dataclass
@@ -86,4 +89,4 @@ class WinTheGameOptions(PerGameCommonOptions):
     split_spider_gloves: SplitSpiderGloves
     require_unlock_teleporters: RequireUnlockTeleporters
     # local_nothing_percentage: LocalNothingPercentage
-    harder_logic_difficulty: HarderLogicDifficullty
+    logic_difficulty: LogicDifficullty

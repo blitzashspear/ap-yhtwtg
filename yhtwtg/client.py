@@ -125,7 +125,7 @@ class WinTheGameContext(CommonContext):
         elif item == "Spider Gloves":
             self.WinTheGame.write_uchar(self.spider_gloves_address, 1)
             self.WinTheGame.write_uchar(self.can_wall_jump_address, 1)
-        elif item == "Left Spider Glove": #TODO spamming left and right can confuse the game. might be a problem with the 0.1.0 before i changed the timer.
+        elif item == "Left Spider Glove":
             self.has_left_glove = True
         elif item == "Right Spider Glove":
             self.has_right_glove = True

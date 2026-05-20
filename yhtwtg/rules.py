@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from .world import WinTheGameWorld
 
 def set_all_rules(world: WinTheGameWorld) -> None:
+    #TODO cognitive resonance and precarious foothold harder logic? just hold left and spam jump. springheel and left spider gloves and this also goes into outside castle.
+    #TODO extreme logic springheel and left glove. attic storeroom and the floor is lava
     set_rule(world.get_entrance("Starting Area to Castle Area Outer"), lambda state: state.has_all(("Cerulean Aura", "Springheel Boots"), world.player))
 
     set_rule(world.get_location("Aqueous Humor - Treasure"), lambda state: state.has("Springheel Boots", world.player))
@@ -21,7 +23,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     set_rule(world.get_location("Mind the Gap - Treasure"), lambda state: state.has("Crimson Aura", world.player))
     set_rule(world.get_location("Pit Stop - Treasure"), lambda state: state.has("Springheel Boots", world.player))
     set_rule(world.get_location("Precarious Footholds - Treasure"), lambda state: state.has_all(("Cerulean Aura", "Crimson Aura"), world.player))
-    if not world.options.harder_logic_difficulty:
+    if not world.options.logic_difficulty > 0: #At least hard
         set_rule(world.get_location("Remnants of a Past Unknown - Treasure"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots"), world.player))
     set_rule(world.get_location("Shelter from the Storm - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
     set_rule(world.get_location("Tower of Sorrows - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))

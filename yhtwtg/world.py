@@ -42,5 +42,5 @@ class WinTheGameWorld(World):
             "death_link_amnesty": self.options.death_link_amnesty,
             "split_spider_gloves": self.options.split_spider_gloves,
             "require_unlock_teleporters": self.options.require_unlock_teleporters,
-            "harder_logic_difficulty": self.options.harder_logic_difficulty,
+            "logic_difficulty": self.options.logic_difficulty,
         }
