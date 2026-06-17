@@ -128,7 +128,6 @@
 
 <room x="-3" y="5" toptitle="Springheel Boots" title="- Jump Again in Midair -">
 	<entity template="cash" x="160" y="120" />
-	<entity template="crumbler" x="224" y="135" />
 </room>
 
 
@@ -253,7 +252,6 @@
 </room>
 
 <room x="-2" y="5" title="Back to the Surface">
-	<entity template="crumbler" x="155" y="115" />
 	<entity template="gate" x="288" y="88"
 		destwx="0" destwy="2" destrx="160" destry="112" />
 </room>
@@ -307,7 +305,6 @@
 <room x="3" y="6" title="yeah but why u jelly tho">
 	<entity template="jelly" x="240" y="96" dx="0" dy="1" />
 	<entity template="jelly" x="120" y="96" dx="0" dy="-1" />
-	<entity template="gate" x="200", y="150", destwx="-3", destwy="0", destrx="150", destry="150" />
 </room>
 
 <room x="3" y="5" title="Abandoned Alcove">
@@ -347,8 +344,6 @@
 </room>
 
 <room x="-1" y="2" title="Subterranea">
-	<entity template="gate" x="165" y="90"
-		destwx="0" destwy="0" destrx="140" destry="50"/>
 	<entity template="crumbler" x="224" y="60" />
 </room>
 
@@ -443,7 +438,7 @@
 
 <room x="-2" y="1" title="Leaps and Bounds" />
 
-<room x="-1" y="-1" title="From Another World" />
+<room x="-1" y="-1" title="From Another World"/>
 
 <room x="-1" y="1" title="Swimming Upstream">
 	<entity template="plasm_spawner" rate="0.85" x="56" y="84" dx="1" dy="-0.2" stagger="0.0" bounces="6" />
@@ -503,9 +498,7 @@
 
 <room x="6" y="5" title="Bring a Mallet" />
 
-<room x="7" y="4" title="Feline Foreshadowing">
-	<entity template="gate" x="60" y="120" destwx="2" destwy="0" destrx="284" destry="60" />
-</room>
+<room x="7" y="4" title="Feline Foreshadowing"/>
 
 <room x="-1" y="-4" dyntitle="true" dynhints="true">
 	<entity template="gate" x="80" y="32" destwx="-1" destwy="-4" destrx="36" destry="104" dynchar="A" />
