@@ -1,5 +1,6 @@
 ITEM_IDS = {
-    #1-30 are regular items.
+    # Attempting to use an ID of 0 will make the client kill itself.
+    # 1-30: Regular items.
     "Cerulean Aura": 1,
     "Crimson Aura": 2,
     "Springheel Boots": 3,
@@ -30,14 +31,24 @@ ITEM_IDS = {
     "Letter X": 28,
     "Letter Y": 29,
     "Letter Z": 30,
-    #31-40 is reserved for traps.
+    # 31-40: Traps.
     "Lose The Game": 31,
     "Stop Jumping Trap": 32,
     "Secret Room Trap": 33,
-    #other items.
+    "Freeze Trap": 34,
+    "Fast Trap": 35,
+    # 41-50: Optional Progressive Items
     "Left Spider Glove": 41,
     "Right Spider Glove": 42,
     "Unlock Teleporters": 43,
+    "Magic Word": 44,
+    "Magic Symbol": 45,
+    "Unlock Quarry": 46,
+    "Unlock Mineshaft": 47,
+    "Unlock Castle": 48,
+    "Unlock Graveyard": 49,
+
+    # Other items
     "Win the Game": 99,
     "Nothing": 100,
 }

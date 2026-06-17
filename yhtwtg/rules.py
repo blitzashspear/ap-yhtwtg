@@ -1,92 +1,111 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from worlds.generic.Rules import set_rule, add_rule
+from worlds.generic.Rules import set_rule, add_rule, CollectionState
 
 if TYPE_CHECKING:
-    from .world import WinTheGameWorld
+    from .__init__ import WinTheGameWorld
 
 def set_all_rules(world: WinTheGameWorld) -> None:
-    #TODO cognitive resonance and precarious foothold harder logic? just hold left and spam jump. springheel and left spider gloves and this also goes into outside castle.
-    #TODO extreme logic springheel and left glove. attic storeroom and the floor is lava
-    set_rule(world.get_entrance("Starting Area to Castle Area Outer"), lambda state: state.has_all(("Cerulean Aura", "Springheel Boots"), world.player))
+    #TODO hops and skips can be done with nothing, but requires right glove to escape extreme trick because frame perfect and spikes. Solution: New platform on pit of spikes removes right glove trick but prevents softlock.
+    #TODO possible to access clarity comes in waves from great hall. logic: hard
+    #TODO check all abstract bridge connections.
+    def needs_item(state: CollectionState, item: str):
+        return state.has(item, world.player)
+    def needs_glove(state: CollectionState, dir: str):
+        return state.has_any(("Spider Gloves", f"{dir} Spider Glove"), world.player)
+    def needs_either_glove(state: CollectionState):
+        return state.has_any(("Spider Gloves", "Left Spider Glove", "Right Spider Glove"), world.player)
+    def needs_both_gloves(state: CollectionState):
+        return state.has("Spider Gloves", world.player) or state.has_all(("Left Spider Glove", "Right Spider Glove"), world.player)
+    def right_or_jump_and_left(state: CollectionState):
+        return needs_glove(state, "Right") or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player)
+    # REGION / ROOM RULES
+    set_rule(world.get_entrance("Main Hallway Left to Hydra's Corner"), lambda state: needs_glove(state, "Right"))
+    set_rule(world.get_entrance("Main Hallway Left to Upstream"), lambda state: needs_either_glove(state))
+    set_rule(world.get_entrance("Quarry to Map Room"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Right"))
+    set_rule(world.get_entrance("Quarry to Never Could See Any Other Way"), lambda state: needs_item(state, "Cerulean Aura"))
+    set_rule(world.get_entrance("Main Hallway Right to Shelter"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots"), world.player))
+    set_rule(world.get_entrance("Shelter to Footholds"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_entrance("Footholds to Mushroom Stairs"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_entrance("Castle Area Outer to Brazen Machines"), lambda state: needs_glove(state, "Right"))
+    set_rule(world.get_entrance("Brazen Machines to Castle Area Inner"), lambda state: needs_glove(state, "Left"))
+    set_rule(world.get_entrance("Castle Area Outer to Not Worth It!"), lambda state: state.has_all(("Cerulean Aura", "Springheel Boots"), world.player))
+    set_rule(world.get_entrance("Main Hallway Right to Tower of Sorrows"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))
+    set_rule(world.get_entrance("Tower of Sorrows to Never Could See Any Other Way"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Left"))    
+    set_rule(world.get_entrance("Tower of Sorrows to You Definitely Shouldn't Go Left"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))
+    set_rule(world.get_entrance("Tower of Sorrows to Main Hallway Right"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Right Spider Glove"), world.player))
+    set_rule(world.get_entrance("Tower of Sorrows to Tower of Regrets"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove", "Right Spider Glove"), world.player))
+    set_rule(world.get_entrance("Tower of Regrets to Falling Into a Greener Life"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots", "Spider Gloves", "Right Spider Glove"), world.player))
+    set_rule(world.get_entrance("Tower of Regrets to Rawr!"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))
+    set_rule(world.get_entrance("Underground to Twisting Path"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_entrance("Underground to Magic Word Reveal"), lambda state: right_or_jump_and_left(state))
+    set_rule(world.get_entrance("Starting Hallway to From Another World"), lambda state: state.has_any(("Crimson Aura", "Spider Gloves", "Left Spider Glove"), world.player) or state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
+    set_rule(world.get_entrance("From Another World to Playing with Fire"), lambda state: state.has_any(("Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))
+    set_rule(world.get_entrance("Playing with Fire to Exit Strategy"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Left"))
+    set_rule(world.get_entrance("Exit Strategy to End Game Area"), lambda state: needs_item(state, "Springheel Boots") and needs_both_gloves(state))
+    set_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Letter E", "Letter P", "Letter R", "Letter S", "Letter U"), world.player))
+    set_rule(world.get_entrance("Mushroom Stairs to On the Count of Three"), lambda state: needs_glove(state, "Right"))
+    set_rule(world.get_entrance("Main Hallway Left to Not All Those Who Wander Are Lost"), lambda state: needs_item(state, "Springheel Boots") and (needs_glove(state, "Right") or state.has_all(("Cerulean Aura", "Left Spider Glove"), world.player)))
+    set_rule(world.get_entrance("Not All Those Who Wander Are Lost to Leap of Faith"), lambda state: needs_glove(state, "Left"))
+    set_rule(world.get_entrance("Cat Level Entrance to Secret Cat Level"), lambda state: needs_both_gloves(state))
+    set_rule(world.get_entrance("Graveyard to Sea Cave"), lambda state: needs_item(state, "Crimson Aura"))
+    set_rule(world.get_entrance("Sea Cave to Euclid Shrugged"), lambda state: needs_item(state, "Cerulean Aura"))
+    set_rule(world.get_entrance("Graveyard to Alcove Entry"), lambda state: needs_glove(state, "Left"))
+    set_rule(world.get_entrance("Alcove Entry to Abandoned Alcove"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Right"))
+    set_rule(world.get_entrance("Underground to Back to the Surface"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Right"))
+    set_rule(world.get_entrance("Starting Hallway to Taking the Long Way (Left)"), lambda state: needs_glove(state, "Right") or (needs_item(state, "Springheel Boots") and state.has_any(("Crimson Aura", "Left Spider Glove"), world.player)))
+    set_rule(world.get_entrance("Not All Those Who Wander Are Lost to Taking the Long Way (Right)"), lambda state: needs_glove(state, "Left"))
 
-    set_rule(world.get_location("Aqueous Humor - Treasure"), lambda state: state.has("Springheel Boots", world.player))
-    set_rule(world.get_location("Artisan Stone Walls - Treasure"), lambda state: state.has("Cerulean Aura", world.player))
-    set_rule(world.get_location("Bat Cave - Treasure"), lambda state: state.has("Springheel Boots", world.player))
-    set_rule(world.get_location("Circular Logic - Treasure"), lambda state: state.has("Crimson Aura", world.player))
-    set_rule(world.get_location("Cognitive Resonance - Treasure"), lambda state: state.has_all(("Cerulean Aura", "Crimson Aura"), world.player))
-    set_rule(world.get_location("Contrived Lock/Key Mechanisms - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
-    set_rule(world.get_location("Eponymous - Win the Game"), lambda state: state.has_all(("Letter E", "Letter P", "Letter R", "Letter S", "Letter U"), world.player))
-    set_rule(world.get_location("Euclid Shrugged - Treasure"), lambda state: state.has_all(("Cerulean Aura", "Crimson Aura"), world.player))
-    set_rule(world.get_location("Forgotten Tunnels - Left Treasure"), lambda state: state.has("Springheel Boots", world.player))
-    set_rule(world.get_location("Hops and Skips - Treasure"), lambda state: state.has("Springheel Boots", world.player))
-    set_rule(world.get_location("Mind the Gap - Treasure"), lambda state: state.has("Crimson Aura", world.player))
-    set_rule(world.get_location("Pit Stop - Treasure"), lambda state: state.has("Springheel Boots", world.player))
-    set_rule(world.get_location("Precarious Footholds - Treasure"), lambda state: state.has_all(("Cerulean Aura", "Crimson Aura"), world.player))
-    if not world.options.logic_difficulty > 0: #At least hard
-        set_rule(world.get_location("Remnants of a Past Unknown - Treasure"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots"), world.player))
-    set_rule(world.get_location("Shelter from the Storm - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
-    set_rule(world.get_location("Tower of Sorrows - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
-    set_rule(world.get_location("Uncertain Semiotics - Treasure"), lambda state: state.has("Springheel Boots", world.player))
-
-    if world.options.split_spider_gloves:
-        set_rule(world.get_entrance("Starting Area to Teleporter Area"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots", "Left Spider Glove"), world.player))
-        set_rule(world.get_entrance("Castle Area Outer to Castle Area Inner"), lambda state: state.has_all(("Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_entrance("Starting Area to End Game Area"), lambda state: state.has_all(("Springheel Boots", "Left Spider Glove", "Right Spider Glove"), world.player))
-
-        set_rule(world.get_location("Abandoned Alcove - Treasure"), lambda state: state.has_all(("Springheel Boots", "Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Arcane Vocabulary - Top Treasure"), lambda state: state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Avalon Calling - Treasure"), lambda state: state.has_any(("Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Danger - Treasure"), lambda state: state.has_any(("Springheel Boots", "Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Don't Be Hasty - Top Treasure"), lambda state: state.has_all(("Cerulean Aura", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Hidden Crevasse - Treasure"), lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Hydra Is Myth - Treasure"), lambda state: state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("KISS Principle - Treasure"), lambda state: state.has_any(("Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Leap of Faith - Treasure"), lambda state: state.has("Right Spider Glove", world.player))
-        set_rule(world.get_location("Maps and Legends - Treasure"), lambda state: state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Never Could See Any Other Way - Treasure"), lambda state: state.has("Cerulean Aura", world.player) or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player) or state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Playing with Fire - Treasure"), lambda state: state.has_all(("Springheel Boots", "Left Spider Glove"), world.player) or state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Prawn Shot First - Treasure"), lambda state: state.has("Crimson Aura", world.player) and state.has_any(("Springheel Boots", "Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Snake, It's a Snake - Treasure"), lambda state: state.has("Right Spider Glove", world.player) or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player))
-        set_rule(world.get_location("Swimming Upstream - Treasure"), lambda state: state.has("Right Spider Glove", world.player) or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player))
-        set_rule(world.get_location("Taking the Long Way - Left Treasure"), lambda state: state.has_all(("Left Spider Glove", "Right Spider Glove"), world.player) or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player) or state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("Taking the Long Way - Right Treasure"), lambda state: state.has_all(("Cerulean Aura", "Crimson Aura", "Springheel Boots", "Left Spider Glove", "Right Spider Glove"), world.player))
-        set_rule(world.get_location("The Arbitrarium - Treasure"), lambda state: (state.has_all(("Springheel Boots", "Left Spider Glove"), world.player) or state.has("Right Spider Glove", world.player)))
-        set_rule(world.get_location("Tower of Regrets - Treasure"), lambda state: (state.has("Right Spider Glove", world.player) or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player)) and state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
-        set_rule(world.get_location("You Have to Start the Game - Treasure"), lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Left Spider Glove", "Right Spider Glove"), world.player))
-
-    else:
-        set_rule(world.get_entrance("Starting Area to Teleporter Area"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_entrance("Castle Area Outer to Castle Area Inner"), lambda state: state.has("Spider Gloves", world.player))
-        set_rule(world.get_entrance("Starting Area to End Game Area"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-
-        set_rule(world.get_location("Abandoned Alcove - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Arcane Vocabulary - Top Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Avalon Calling - Treasure"), lambda state: state.has("Spider Gloves", world.player))
-        set_rule(world.get_location("Danger - Treasure"), lambda state: state.has_any(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Don't Be Hasty - Top Treasure"), lambda state: state.has_all(("Cerulean Aura", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Hidden Crevasse - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Hydra Is Myth - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("KISS Principle - Treasure"), lambda state: state.has("Spider Gloves", world.player))
-        set_rule(world.get_location("Leap of Faith - Treasure"), lambda state: state.has("Spider Gloves", world.player))
-        set_rule(world.get_location("Maps and Legends - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Never Could See Any Other Way - Treasure"), lambda state: state.has("Cerulean Aura", world.player) or state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Playing with Fire - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Prawn Shot First - Treasure"), lambda state: state.has("Crimson Aura", world.player) and state.has_any(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Snake, It's a Snake - Treasure"), lambda state: state.has("Spider Gloves", world.player))
-        set_rule(world.get_location("Swimming Upstream - Treasure"), lambda state: state.has("Spider Gloves", world.player))
-        set_rule(world.get_location("Taking the Long Way - Left Treasure"), lambda state: state.has("Spider Gloves", world.player))
-        set_rule(world.get_location("Taking the Long Way - Right Treasure"), lambda state: state.has_all(("Cerulean Aura", "Crimson Aura", "Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("The Arbitrarium - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
-        set_rule(world.get_location("Tower of Regrets - Treasure"), lambda state: state.has("Spider Gloves", world.player) and state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
-        set_rule(world.get_location("You Have to Start the Game - Treasure"), lambda state: state.has_all(("Springheel Boots", "Spider Gloves"), world.player))
+    if world.options.logic_difficulty > 0: # Harder than normal
+        add_rule(world.get_entrance("Underground to Twisting Path"), lambda state: needs_glove(state, "Right"), "or")
+        add_rule(world.get_entrance("Underground to Back to the Surface"), lambda state: state.has("Left Spider Glove", world.player), "or")
+        if world.options.logic_difficulty > 1: # Harder than hard
+            add_rule(world.get_entrance("Graveyard to Alcove Entry"), lambda state: state.has_all(("Springheel Boots", "Right Spider Glove"), world.player), "or")
 
     if world.options.require_unlock_teleporters:
-        add_rule(world.get_entrance("Starting Area to Teleporter Area"), lambda state: state.has("Unlock Teleporters", world.player))
+        set_rule(world.get_entrance("Rawr! to Underground"), lambda state: state.has("Unlock Teleporters", world.player))
+        set_rule(world.get_entrance("End Game Area to Password Puzzle"), lambda state: state.has("Unlock Teleporters", world.player))
+        set_rule(world.get_entrance("Leap of Faith to Cat Level Entrance"), lambda state: state.has("Unlock Teleporters", world.player))
 
-        add_rule(world.get_location("Consolation Prize - Treasure"), lambda state: state.has("Unlock Teleporters", world.player))
-        add_rule(world.get_location("Eponymous - Win the Game"), lambda state: state.has("Unlock Teleporters", world.player))
-        add_rule(world.get_location("Secret Cat Level - Left Treasure"), lambda state: state.has("Unlock Teleporters", world.player))
-        add_rule(world.get_location("Secret Cat Level - Right Treasure"), lambda state: state.has("Unlock Teleporters", world.player))
+    if world.options.include_extra_roadblocks:
+        set_rule(world.get_entrance("Main Hallway Left to Quarry"), lambda state: state.has("Unlock Quarry", world.player))
+        set_rule(world.get_entrance("Mushroom Stairs to Castle Area Outer"), lambda state: state.has("Unlock Castle", world.player))
+        set_rule(world.get_entrance("Main Hallway Right to Graveyard"), lambda state: state.has("Unlock Graveyard", world.player))
+        set_rule(world.get_entrance("Underground to Mineshaft"), lambda state: state.has("Unlock Mineshaft", world.player))
 
+    # if world.options.password_randomization: # Technically not required but will be required logically.
+    #     add_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Magic Word", "Magic Symbol"), world.player), "or")
+
+    # TREASURE RULES
+    set_rule(world.get_location("Arcane Vocabulary - Top Treasure"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_location("Artisan Stone Walls - Treasure"), lambda state: needs_item(state, "Cerulean Aura"))
+    set_rule(world.get_location("Avalon Calling - Treasure"), lambda state: right_or_jump_and_left(state))
+    set_rule(world.get_location("Bat Cave - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Left"))
+    set_rule(world.get_location("Contrived Lock/Key Mechanisms - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
+    set_rule(world.get_location("Don't Be Hasty - Top Treasure"), lambda state: needs_glove(state, "Right"))
+    set_rule(world.get_location("Forgotten Tunnels - Left Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Left"))
+    set_rule(world.get_location("Hidden Crevasse - Treasure"), lambda state: needs_glove(state, "Left") or state.has_all(("Springheel Boots", "Right Spider Glove"), world.player))
+    set_rule(world.get_location("Hops and Skips - Treasure"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_location("Hydra Is Myth - Treasure"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_location("KISS Principle - Treasure"), lambda state: needs_either_glove(state))
+    set_rule(world.get_location("Mind the Gap - Treasure"), lambda state: needs_item(state, "Crimson Aura"))
+    set_rule(world.get_location("Pit Stop - Treasure"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_location("Playing with Fire - Treasure"), lambda state: needs_item(state, "Springheel Boots") and needs_either_glove(state))
+    set_rule(world.get_location("Prawn Shot First - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Right"))
+    if world.options.logic_difficulty > 0: #Harder than normal
+        add_rule(world.get_location("Prawn Shot First - Treasure"), lambda state: state.has("Left Spider Glove", world.player), "or")
+    if world.options.logic_difficulty == 0: #Only normal.
+        set_rule(world.get_location("Remnants of a Past Unknown - Treasure"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots"), world.player))
+    set_rule(world.get_location("Secret Passage - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Right"))
+    set_rule(world.get_location("Shelter from the Storm - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
+    set_rule(world.get_location("Snake, It's a Snake - Treasure"), lambda state: right_or_jump_and_left(state))
+    set_rule(world.get_location("Swimming Upstream - Treasure"), lambda state: right_or_jump_and_left(state))
+    set_rule(world.get_location("Taking the Long Way - Left Treasure"), lambda state: needs_glove(state, "Right") or (needs_item(state, "Springheel Boots") and (needs_glove(state, "Left") or needs_item(state, "Crimson Aura"))))
+    set_rule(world.get_location("The Arbitrarium - Treasure"), lambda state: right_or_jump_and_left(state))
+    set_rule(world.get_location("Tower of Sorrows - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Right Spider Glove"), world.player))
+    set_rule(world.get_location("Tower of Regrets - Treasure"), lambda state: needs_either_glove(state) or state.can_reach_region("Euclid Shrugged", world.player))
+    set_rule(world.get_location("Uncertain Semiotics - Treasure"), lambda state: needs_item(state, "Springheel Boots"))
+    set_rule(world.get_location("You Have to Start the Game - Treasure"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Left"))
+
+    #TODO get UT to understand this is not go mode.
     world.multiworld.completion_condition[world.player] = lambda state: state.has("Win the Game", world.player)

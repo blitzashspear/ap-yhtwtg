@@ -72,7 +72,7 @@ COORDS_TO_ROOM_NAME = {
     (-2, 4): "Tower of Regrets - Room Entry",
     (-2, 5): "Back to the Surface - Room Entry",
 
-    (-1, -4): "dynamic_room_left - Room Entry",
+    (-1, -4): "Warp Left - Room Entry",
     (-1, -3): "Speak Now... - Room Entry",
     (-1, -2): "Open Sesame - Room Entry",
     (-1, -1): "From Another World - Room Entry",
@@ -82,7 +82,7 @@ COORDS_TO_ROOM_NAME = {
     (-1, 3): "Contrived Lock/Key Mechanisms - Room Entry",
     (-1, 4): "Falling Into a Greener Life - Room Entry",
 
-    (0, -4): "dynamic_room_right - Room Entry",
+    (0, -4): "Warp Middle - Room Entry",
     (0, -3): "Consolation Prize - Room Entry",
     (0, -2): "Eponymous - Room Entry",
     (0, -1): "Harbinger - Room Entry",
@@ -92,11 +92,12 @@ COORDS_TO_ROOM_NAME = {
     (0, 3): "Bat Cave - Room Entry",
     (0, 4): "Euclid Shrugged - Room Entry",
 
+    (1, -4): "Warp Right - Room Entry",
     (1, -1): "Taking the Long Way - Room Entry",
     (1, 0): "Danger - Room Entry",
     (1, 1): "Not All Those Who Wander Are Lost - Room Entry",
     (1, 2): "Cognitive Resonance - Room Entry",
-    (1, 3): "Functional Spelaeology - Room Entry",
+    (1, 3): "Functional Spelæology - Room Entry",
     (1, 4): "Circular Logic - Room Entry",
 
     (2, 0): "Leap of Faith - Room Entry",

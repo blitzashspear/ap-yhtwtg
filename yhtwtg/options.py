@@ -1,13 +1,18 @@
 from dataclasses import dataclass
-from Options import PerGameCommonOptions, Range, Toggle, DeathLink, Choice
+from Options import PerGameCommonOptions, Range, Toggle, DeathLink, Choice, OptionGroup
 
-#TODO roomsanity and localnothing percentage unimplemented
-#TODO new ideas: freeze trap, speedup trap
 class RoomSanity(Toggle):
     """
-    Make each room a location. Currently does nothing.
+    Make each room a location.
     """
-    display_name = "Room Sanity"
+    display_name = "Roomsanity"
+    default = False
+
+class BellSanity(Toggle):
+    """
+    Make each checkpoint bell a location.
+    """
+    display_name = "Bellsanity"
     default = False
 
 class DeathLinkAmnesty(Range):
@@ -35,9 +40,23 @@ class ShuffleStopJumpingTrap(Toggle):
 
 class ShuffleSecretRoomsTrap(Toggle):
     """
-    Adds a trap that teleports you to the secret rooms included in the game. 
+    Adds a trap that teleports you to the secret rooms included in the game. Either escape the rooms or die trying.
     """
     display_name = "Shuffle Secret Rooms Trap"
+    default = False
+
+class ShuffleFreezeTrap(Toggle):
+    """
+    Adds a trap that freezes the game for a short time.
+    """
+    display_name = "Shuffle Freeze Trap"
+    default = False
+
+class ShuffleFastTrap(Toggle):
+    """
+    Adds a trap that quadruples the game speed for a short time.
+    """
+    display_name = "Shuffle Fast Trap"
     default = False
 
 class SplitSpiderGloves(Toggle):
@@ -53,36 +72,77 @@ class RequireUnlockTeleporters(Toggle):
     """
     display_name = "Require Unlock Teleporters"
     default = False
+    
+class LogicDifficullty(Choice):
+    """
+    Will place locations with harder jumps in logic. These include non-obvious movement, pixel perfect jumps, coyotoe jumping or all at once.
+    """
+    display_name = "Logic Difficulty"
+    option_normal = 0
+    option_hard = 1
+    option_extreme = 2
+    default = 0
+
+class PasswordRandomization(Choice):
+    """
+    Randomize the password at the end of the game. This shuffles 2 new items: "Magic Word" and "Magic Symbol".
+    These items will be logically required to beat the game, but won't actually do anything to block you.
+
+    Words chooses a password from a preset list.
+    Any chooses a random jumble of 5 unique letters.
+    """
+    display_name = "Password Randomization"
+    default = 0
+    option_off = 0
+    option_words = 1
+    option_any = 2
+
+class IncludeExtraRoadblocks(Toggle):
+    """
+    Includes 4 more roadblocks that require unlocks to access.
+    The Quarry (Cerulean Aura Area)
+    The Mineshaft (Area Left of Springheel Boots)
+    The Castle (Spider Glove Area)
+    The Graveyard (Crimson Aura Area)
+    """
+    display_name = "Include Extra Roadblocks"
+    default = False
+
 
 class LocalNothingPercentage(Range):
     """
-    Percentage of "Nothing" items that are placed locally.
+    Percentage of "Nothing" items that are placed locally. 
     """
     display_name = "Local Nothing Percentage"
     default = 50
     range_start = 0
     range_end = 90
 
-class LogicDifficullty(Choice):
-    """
-    Will place items with very hard jumps into logic.
-    """
-    display_name = "Logic Difficulty"
-    default = False
-    option_normal = 0
-    option_hard = 1
-    option_extreme = 2
-
+option_groups = [
+    OptionGroup("Extra Locations", [RoomSanity]),
+    OptionGroup("DeathLink", [DeathLink, DeathLinkAmnesty]),
+    OptionGroup("Traps", [ShuffleLoseTheGame, ShuffleStopJumpingTrap, ShuffleSecretRoomsTrap, ShuffleFreezeTrap, ShuffleFastTrap]),
+    OptionGroup("Randomizer Changes", [SplitSpiderGloves, RequireUnlockTeleporters, LogicDifficullty, IncludeExtraRoadblocks]),
+    OptionGroup("Filler Options", [LocalNothingPercentage])
+]
 
 @dataclass
 class WinTheGameOptions(PerGameCommonOptions):
-    # room_sanity: RoomSanity
+    room_sanity: RoomSanity
+
     death_link: DeathLink
     death_link_amnesty: DeathLinkAmnesty
+
     shuffle_lose_the_game: ShuffleLoseTheGame
     shuffle_stop_jumping_trap: ShuffleStopJumpingTrap
     shuffle_secret_rooms_trap: ShuffleSecretRoomsTrap
+    shuffle_freeze_trap: ShuffleFreezeTrap
+    shuffle_fast_trap: ShuffleFastTrap
+
     split_spider_gloves: SplitSpiderGloves
     require_unlock_teleporters: RequireUnlockTeleporters
-    # local_nothing_percentage: LocalNothingPercentage
     logic_difficulty: LogicDifficullty
+    # password_randomization: PasswordRandomization
+    include_extra_roadblocks: IncludeExtraRoadblocks
+
+    local_nothing_percentage: LocalNothingPercentage
