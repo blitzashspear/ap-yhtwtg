@@ -718,7 +718,7 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
     ncsaow.connect(tower_of_sorrows, "Quarry Exit to Tower of Sorrows")
     ncsaow.connect(ydsgl, "Never Could See Any Other Way to You Definitely Shouldn't Go Left")
     main_hallway_right.connect(tower_of_sorrows, "Main Hallway Right to Tower of Sorrows")
-    tower_of_sorrows.connect(ncsaow, "Tower of Sorrows to Never Could See Any Other Way")
+    tower_of_sorrows.connect(ydsgl, "Tower of Sorrows to You Definitely Shouldn't Go Left")
     tower_of_sorrows.connect(main_hallway_right, "Tower of Sorrows to Main Hallway Right")
     tower_of_sorrows.connect(tower_of_regrets, "Tower of Sorrows to Tower of Regrets")
     tower_of_regrets.connect(fiagl, "Tower of Regrets to Falling Into a Greener Life")
@@ -752,7 +752,7 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
 
     # Connections only with harder difficulty
     if world.options.logic_difficulty > 0: # Harder than normal
-        tower_of_sorrows.connect(ydsgl, "Tower of Sorrows to You Definitely Shouldn't Go Left", lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Left Spider Glove", "Spider Gloves"), world.player))
+        tower_of_sorrows.connect(ncsaow, "Tower of Sorrows to Never Could See Any Other Way", lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Left Spider Glove", "Spider Gloves"), world.player))
         main_hallway_right.connect(footholds, "Main Hallway Right to Footholds", lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Left Spider Glove", "Spider Gloves"), world.player))
         castle_area_outer.connect(clarity, "Castle Area Outer to Clarity Comes in Waves", lambda state: state.has_any(("Left Spider Glove", "Spider Gloves", "Right Spider Glove"), world.player))
         clarity.connect(floor_is_lava, "Clarity Comes in Waves to The Floor is Lava", lambda state: state.has_any(("Right Spider Glove", "Spider Gloves"), world.player))
