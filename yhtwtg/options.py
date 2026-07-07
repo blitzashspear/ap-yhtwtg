@@ -83,20 +83,6 @@ class LogicDifficullty(Choice):
     option_extreme = 2
     default = 0
 
-class PasswordRandomization(Choice):
-    """
-    Randomize the password at the end of the game. This shuffles 2 new items: "Magic Word" and "Magic Symbol".
-    These items will be logically required to beat the game, but won't actually do anything to block you.
-
-    Words chooses a password from a preset list.
-    Any chooses a random jumble of 5 unique letters.
-    """
-    display_name = "Password Randomization"
-    default = 0
-    option_off = 0
-    option_words = 1
-    option_any = 2
-
 class IncludeExtraRoadblocks(Toggle):
     """
     Includes 4 more roadblocks that require unlocks to access.
@@ -108,6 +94,30 @@ class IncludeExtraRoadblocks(Toggle):
     display_name = "Include Extra Roadblocks"
     default = False
 
+# class IncludeExtraRoadblocks(OptionSet):
+#     """
+#     Includes 4 more roadblocks that require unlocks to access.
+#     The Quarry (Cerulean Aura Area)
+#     The Mineshaft (Area Left of Springheel Boots)
+#     The Castle (Spider Glove Area)
+#     The Graveyard (Crimson Aura Area)
+#     """
+#     display_name = "Include Extra Roadblocks"
+#     default = []
+
+class PasswordRandomization(Choice):
+    """
+    Randomize the password at the end of the game. This shuffles 2 new items: "Reveal Magic Word" and "Reveal Magic Symbol".
+    These items will be logically required to beat the game, but won't actually do anything to block you.
+
+    Words chooses a password from a preset list.
+    Any chooses a random jumble of 5 unique letters.
+    """
+    display_name = "Password Randomization"
+    default = 0
+    option_off = 0
+    option_words = 1
+    option_any = 2
 
 class LocalNothingPercentage(Range):
     """
@@ -118,17 +128,27 @@ class LocalNothingPercentage(Range):
     range_start = 0
     range_end = 90
 
+class HideLetterClassification(Toggle):
+    """
+    If turned on, all letters shuffled into the pool will be progression.
+    """
+    display_name = "Hide Letter Classification"
+    default = False
+
 option_groups = [
-    OptionGroup("Extra Locations", [RoomSanity]),
+    OptionGroup("Extra Locations", [RoomSanity, BellSanity]),
     OptionGroup("DeathLink", [DeathLink, DeathLinkAmnesty]),
     OptionGroup("Traps", [ShuffleLoseTheGame, ShuffleStopJumpingTrap, ShuffleSecretRoomsTrap, ShuffleFreezeTrap, ShuffleFastTrap]),
-    OptionGroup("Randomizer Changes", [SplitSpiderGloves, RequireUnlockTeleporters, LogicDifficullty, IncludeExtraRoadblocks]),
+    OptionGroup("Randomizer Changes", [SplitSpiderGloves, RequireUnlockTeleporters, LogicDifficullty, IncludeExtraRoadblocks, PasswordRandomization]),
+    # OptionGroup("Randomizer Changes", [SplitSpiderGloves, RequireUnlockTeleporters, LogicDifficullty, IncludeExtraRoadblocks, PasswordRandomization]),
     OptionGroup("Filler Options", [LocalNothingPercentage])
+    # OptionGroup("Filler Options", [LocalNothingPercentage, HideLetterClassification])
 ]
 
 @dataclass
 class WinTheGameOptions(PerGameCommonOptions):
     room_sanity: RoomSanity
+    bell_sanity: BellSanity
 
     death_link: DeathLink
     death_link_amnesty: DeathLinkAmnesty
@@ -142,7 +162,8 @@ class WinTheGameOptions(PerGameCommonOptions):
     split_spider_gloves: SplitSpiderGloves
     require_unlock_teleporters: RequireUnlockTeleporters
     logic_difficulty: LogicDifficullty
-    # password_randomization: PasswordRandomization
     include_extra_roadblocks: IncludeExtraRoadblocks
+    # password_randomization: PasswordRandomization
 
     local_nothing_percentage: LocalNothingPercentage
+    # hide_letter_classification: HideLetterClassification

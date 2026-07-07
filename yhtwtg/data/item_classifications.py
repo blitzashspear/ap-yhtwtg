@@ -36,14 +36,14 @@ ITEM_CLASSIFICATIONS = {
     "Letter Y": ItemClassification.filler,
     "Letter Z": ItemClassification.filler,
 
-    "Lose The Game": ItemClassification.trap,
+    "Lose the Game": ItemClassification.trap,
     "Stop Jumping Trap": ItemClassification.trap,
     "Secret Room Trap": ItemClassification.trap,
     "Freeze Trap": ItemClassification.trap,
     "Fast Trap": ItemClassification.trap,
 
-    "Magic Word": ItemClassification.progression,
-    "Magic Symbol": ItemClassification.progression,
+    "Reveal Magic Word": ItemClassification.progression_skip_balancing,
+    "Reveal Magic Symbol": ItemClassification.progression_skip_balancing,
 
     "Unlock Teleporters": ItemClassification.progression,
     "Unlock Quarry": ItemClassification.progression,

@@ -36,8 +36,8 @@ def create_all_items(world: WinTheGameWorld) -> None:
     #         password = world.multiworld.random.choice(VALID_PASSWORDS)
     #     elif world.options.password_randomization == 2: # Any
     #         password = world.multiworld.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
-    #     itempool.append(world.create_item("Magic Word"))
-    #     itempool.append(world.create_item("Magic Symbol"))
+    #     itempool.append(world.create_item("Reveal Magic Word"))
+    #     itempool.append(world.create_item("Reveal Magic Symbol"))
     #     magic_symbol = world.multiworld.random.randrange(1, 10) # 1-9
     #     magic_word = ""
     #     for letter in password:
@@ -50,13 +50,14 @@ def create_all_items(world: WinTheGameWorld) -> None:
     #     world.magic_symbol = magic_symbol
 
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        # if letter in password or world.options.hide_letter_classification:
         if letter in password:
             itempool.append(create_item_with_custom_classification(world, f"Letter {letter}", ItemClassification.progression_skip_balancing))
         else:
             itempool.append(world.create_item(f"Letter {letter}"))
 
     if world.options.shuffle_lose_the_game:
-        itempool.append(world.create_item("Lose The Game"))
+        itempool.append(world.create_item("Lose the Game"))
 
     if world.options.shuffle_secret_rooms_trap:
         itempool.append(world.create_item("Secret Room Trap"))  
@@ -74,12 +75,11 @@ def create_all_items(world: WinTheGameWorld) -> None:
         itempool.append(world.create_item("Unlock Teleporters"))
 
     if world.options.include_extra_roadblocks:
-        itempool.append(world.create_item("Unlock Quarry"))
-        itempool.append(world.create_item("Unlock Mineshaft"))
-        itempool.append(world.create_item("Unlock Castle"))
-        itempool.append(world.create_item("Unlock Graveyard"))
+        for roadblock in ["Castle", "Graveyard", "Mineshaft", "Quarry"]:
+            itempool.append(world.create_item(f"Unlock {roadblock}"))
 
-    # what the fuck is this
+    # Pre-places a percentage of "Nothing" items locally. 
+    # Will set aside an arbitrary number of sphere one locations (2) at random.
     if world.multiworld.players > 1:
         unfilled_locations = world.multiworld.get_unfilled_locations(world.player)
         sphere_one = world.multiworld.get_reachable_locations(CollectionState(world.multiworld),world.player)

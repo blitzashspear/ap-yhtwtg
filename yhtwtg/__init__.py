@@ -73,6 +73,7 @@ class WinTheGameWorld(World):
     def fill_slot_data(self):
         return {
             "room_sanity": self.options.room_sanity.value,
+            "bell_sanity": self.options.bell_sanity.value,
             "death_link": self.options.death_link.value,
             "death_link_amnesty": self.options.death_link_amnesty.value,
             "split_spider_gloves": self.options.split_spider_gloves.value,
@@ -81,9 +82,9 @@ class WinTheGameWorld(World):
             "include_extra_roadblocks": self.options.include_extra_roadblocks.value,
             
             # "password_randomization": self.options.password_randomization.value,
-            "password": self.password,
-            "magic_word": self.magic_word,
-            "magic_symbol": self.magic_symbol
+            # "password": self.password,
+            # "magic_word": self.magic_word,
+            # "magic_symbol": self.magic_symbol
         }
 
     @staticmethod
@@ -95,7 +96,9 @@ class WinTheGameWorld(World):
         if re_gen_passthrough and self.game in re_gen_passthrough:
             self.passthrough = re_gen_passthrough["You Have to Win the Game"]
             self.options.room_sanity.value = self.passthrough["room_sanity"]
+            self.options.bell_sanity.value = self.passthrough["bell_sanity"]
             self.options.split_spider_gloves.value = self.passthrough["split_spider_gloves"]
             self.options.require_unlock_teleporters.value = self.passthrough["require_unlock_teleporters"]
             self.options.logic_difficulty.value = self.passthrough["logic_difficulty"]
             self.options.include_extra_roadblocks.value = self.passthrough["include_extra_roadblocks"]
+            # self.options.password_randomization = self.passthrough["pasword_randomization"]

@@ -13,7 +13,6 @@ def get_location_names_with_ids(location_names: list[str]) -> dict[str, int | No
     return {location_name: LOCATION_IDS[location_name] for location_name in location_names}
 
 def create_regions_and_locations(world: WinTheGameWorld) -> None:
-    #TODO add taking the long way left, right, and room.
     regions = []
 
     starting_hallway = Region("Starting Hallway", world.player, world.multiworld)
@@ -120,14 +119,6 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
         "Not Worth It! - Treasure"
     ]), WinTheGameLocation)
     regions.append(not_worth_it)
-
-    castle_area_inner = Region("Castle Area Inner", world.player, world.multiworld)
-    castle_area_inner.add_locations(get_location_names_with_ids([
-        "Attic Storeroom - Top Treasure",
-        "The Floor Is Lava - Treasure",
-        "An Even 0x80 - Treasure"
-    ]), WinTheGameLocation)
-    regions.append(castle_area_inner)
 
     tower_of_sorrows = Region("Tower of Sorrows", world.player, world.multiworld)
     tower_of_sorrows.add_locations(get_location_names_with_ids([
@@ -276,6 +267,22 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
     ]), WinTheGameLocation)
     regions.append(ttlw_right)
 
+    clarity = Region("Clarity Comes in Waves", world.player, world.multiworld)
+    regions.append(clarity)
+
+    floor_is_lava = Region("The Floor Is Lava", world.player, world.multiworld)
+    floor_is_lava.add_locations(get_location_names_with_ids([
+        "The Floor Is Lava - Treasure",
+        "An Even 0x80 - Treasure"
+    ]), WinTheGameLocation)
+    regions.append(floor_is_lava)
+
+    attic_top = Region("Attic Storeroom (Top)", world.player, world.multiworld)
+    attic_top.add_locations(get_location_names_with_ids([
+        "Attic Storeroom - Top Treasure",
+    ]), WinTheGameLocation)
+    regions.append(attic_top)
+
     if world.options.room_sanity:
         starting_hallway.add_locations(get_location_names_with_ids([
             "You Have to Start the Game - Room Entry", 
@@ -330,11 +337,11 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
         ]), WinTheGameLocation)
 
         ncsaow.add_locations(get_location_names_with_ids([
-            "Never Could See Any Other Way - Room Entry",
+            "Never Could See Any Other Way - Room Entry"
         ]), WinTheGameLocation)
 
         ydsgl.add_locations(get_location_names_with_ids([
-            "You Definitely Shouldn't Go Left - Room Entry",
+            "You Definitely Shouldn't Go Left - Room Entry"
         ]), WinTheGameLocation)
                     
         main_hallway_right.add_locations(get_location_names_with_ids([
@@ -382,12 +389,6 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
 
         not_worth_it.add_locations(get_location_names_with_ids([
             "Not Worth It! - Room Entry"
-        ]), WinTheGameLocation)
-
-        castle_area_inner.add_locations(get_location_names_with_ids([
-            "The Floor Is Lava - Room Entry",
-            "An Even 0x80 - Room Entry",
-            "Clarity Comes in Waves - Room Entry"
         ]), WinTheGameLocation)
 
         tower_of_sorrows.add_locations(get_location_names_with_ids([
@@ -468,15 +469,15 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
         ]), WinTheGameLocation)
 
         otco3.add_locations(get_location_names_with_ids([
-            "On the Count of Three - Room Entry",
+            "On the Count of Three - Room Entry"
         ]), WinTheGameLocation)
 
         leap_of_faith.add_locations(get_location_names_with_ids([
-            "Leap of Faith - Room Entry",
+            "Leap of Faith - Room Entry"
         ]), WinTheGameLocation)
 
         natwwal.add_locations(get_location_names_with_ids([
-            "Not All Those Who Wander Are Lost - Room Entry",
+            "Not All Those Who Wander Are Lost - Room Entry"
         ]), WinTheGameLocation)
 
         cat_level_entrance.add_locations(get_location_names_with_ids([
@@ -485,7 +486,7 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
         ]), WinTheGameLocation)
 
         secret_cat_level.add_locations(get_location_names_with_ids([
-            "Secret Cat Level - Room Entry",
+            "Secret Cat Level - Room Entry"
         ]), WinTheGameLocation)
 
         graveyard.add_locations(get_location_names_with_ids([
@@ -500,7 +501,7 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
         ]), WinTheGameLocation)
 
         euclid_shrugged.add_locations(get_location_names_with_ids([
-            "Euclid Shrugged - Room Entry",
+            "Euclid Shrugged - Room Entry"
         ]), WinTheGameLocation)
 
         sea_cave.add_locations(get_location_names_with_ids([
@@ -531,9 +532,176 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
             "Taking the Long Way - Room Entry"
         ]), WinTheGameLocation)
 
+        clarity.add_locations(get_location_names_with_ids([
+            "Clarity Comes in Waves - Room Entry"
+        ]), WinTheGameLocation)
+
+        floor_is_lava.add_locations(get_location_names_with_ids([
+            "The Floor Is Lava - Room Entry",
+            "An Even 0x80 - Room Entry"
+        ]), WinTheGameLocation)
+
+    if world.options.bell_sanity:
+        starting_hallway.add_locations(get_location_names_with_ids([
+            "KISS Principle - Bell",
+            "Snake, It's a Snake - Bell",
+            "Treasure Hunt - Bell",
+            "Danger - Bell"
+        ]), WinTheGameLocation)
+
+        main_hallway_left.add_locations(get_location_names_with_ids([
+            "Which Path Will I Take - Bell",
+            "Subterranea - Bell",
+            "Pit of Spikes - Bell",
+            "Hops and Skips - Top Bell",
+            "Hops and Skips - Bottom Bell",
+            "Crawlspace - Bell"
+        ]), WinTheGameLocation)
+
+        hydras_corner.add_locations(get_location_names_with_ids([
+            "Hydra Is Myth - Bell"
+        ]), WinTheGameLocation)
+
+        upstream.add_locations(get_location_names_with_ids([
+            "Swimming Upstream - Bell"
+        ]), WinTheGameLocation)
+
+        quarry.add_locations(get_location_names_with_ids([
+            "Covert Operators - Bell",
+            "I Wonder Where This Goes - Bell",
+            "Foot of the Throne - Bell",
+            "Slippery Slope - Bell",
+            "Cerulean Aura - Bell",
+            "Pit Stop - Bell"
+        ]), WinTheGameLocation)
+
+        ncsaow.add_locations(get_location_names_with_ids([
+            "Never Could See Any Other Way - Top Bell",
+            "Never Could See Any Other Way - Bottom Bell"
+        ]), WinTheGameLocation)
+
+        ydsgl.add_locations(get_location_names_with_ids([
+            "You Definitely Shouldn't Go Left - Top Bell",
+            "You Definitely Shouldn't Go Left - Bottom Bell"
+        ]), WinTheGameLocation)
+
+        main_hallway_right.add_locations(get_location_names_with_ids([
+            "Bat Cave - Bell"
+        ]), WinTheGameLocation)
+
+        mushroom_stairs.add_locations(get_location_names_with_ids([
+            "Eden Maw - Bell"
+        ]), WinTheGameLocation)
+
+        castle_area_outer.add_locations(get_location_names_with_ids([
+            "Great Hall - Bell",
+            "Spider Gloves - Bell"
+        ]), WinTheGameLocation)
+
+        brazen_machines.add_locations(get_location_names_with_ids([
+            "Brazen Machines - Bell"
+        ]), WinTheGameLocation)
+
+        not_worth_it.add_locations(get_location_names_with_ids([
+            "Worth It? - Left Bell",
+            "Worth It? - Right Bell",
+            "Not Worth It! - Left Bell",
+            "Not Worth It! - Right Bell"
+        ]), WinTheGameLocation)
+
+        tower_of_sorrows.add_locations(get_location_names_with_ids([
+            "Tower of Sorrows - Left Bell",
+            "Tower of Sorrows - Right Bell"
+        ]), WinTheGameLocation)
+
+        fiagl.add_locations(get_location_names_with_ids([
+            "Tower of Regrets - Right Bell"
+        ]), WinTheGameLocation)
+
+        rawr.add_locations(get_location_names_with_ids([
+            "Tower of Regrets - Left Bell"
+        ]), WinTheGameLocation)
+
+        underground.add_locations(get_location_names_with_ids([
+            "Obvious Movie Quote - Bell",
+            "Welcome to the Underground - Bell",
+            "The Crab Cake Is a Lie - Bell",
+            "Mine Shaft - Bell",
+            "Springheel Boots - Bell"
+        ]), WinTheGameLocation)
+
+        twisting_path.add_locations(get_location_names_with_ids([
+            "Aqueous Humor - Bell"
+        ]))
+
+        playing_with_fire.add_locations(get_location_names_with_ids([
+            "Playing with Fire - Bell"
+        ]), WinTheGameLocation)
+
+        exit_strategy.add_locations(get_location_names_with_ids([
+            "Exit Strategy - Bell"
+        ]), WinTheGameLocation)
+
+        end_game_area.add_locations(get_location_names_with_ids([
+            "Hardcore Prawn - Bell",
+            "A Brief Respite - Bell",
+            "Before the Crash - Bell",
+            "Hold On Tight and Don't Look Down - Bell",
+            "The Coin and the Courage - Bell",
+            # "Linchpin - Bell", # Unobtainable
+            "Point of No Return - Bell"
+        ]), WinTheGameLocation)
+
+        leap_of_faith.add_locations(get_location_names_with_ids([
+            "Leap of Faith - Bell"
+        ]), WinTheGameLocation)
+
+        natwwal.add_locations(get_location_names_with_ids([
+            "Not All Those Who Wander Are Lost - Bell"
+        ]), WinTheGameLocation)
+
+        cat_level_entrance.add_locations(get_location_names_with_ids([
+            "Rough Landing - Bell",
+            "Feline Foreshadowing - Bell"
+        ]), WinTheGameLocation)
+
+        graveyard.add_locations(get_location_names_with_ids([
+            "Castle Rock - Bell",
+            "Bring a Mallet - Bell",
+            "Crimson Aura - Bell",
+            "Fish Out of Water - Bell"
+        ]), WinTheGameLocation)
+
+        sea_cave.add_locations(get_location_names_with_ids([
+            "Prawn Shot First - Bell",
+            "Circular Logic - Bell"
+        ]), WinTheGameLocation)
+
+        alcove_entry.add_locations(get_location_names_with_ids([
+            "yeah but why u jelly tho - Bell"
+        ]), WinTheGameLocation)
+
+        mineshaft.add_locations(get_location_names_with_ids([
+            "Forgotten Tunnels - Top Bell",
+            "Forgotten Tunnels - Bottom Bell"
+        ]), WinTheGameLocation)
+
+        ttlw_right.add_locations(get_location_names_with_ids([
+            "Taking The Long Way - Bell"
+        ]), WinTheGameLocation)
+
+        clarity.add_locations(get_location_names_with_ids([
+            "Clarity Comes in Waves - Bell"
+        ]), WinTheGameLocation)
+
+        floor_is_lava.add_locations(get_location_names_with_ids([
+            "The Floor Is Lava - Bell",
+            "An Even 0x80 - Bell"
+        ]), WinTheGameLocation)
+
     world.multiworld.regions += regions
 
-    starting_hallway.connect(main_hallway_left, "Starting Hallway to Main Left Hallway")
+    starting_hallway.connect(main_hallway_left, "Starting Hallway to Main Hallway")
     main_hallway_left.connect(hydras_corner, "Main Hallway Left to Hydra's Corner")
     main_hallway_left.connect(quarry, "Main Hallway Left to Quarry")
     main_hallway_left.connect(upstream, "Main Hallway Left to Upstream")
@@ -545,13 +713,12 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
     footholds.connect(mushroom_stairs, "Footholds to Mushroom Stairs")
     mushroom_stairs.connect(castle_area_outer, "Mushroom Stairs to Castle Area Outer")
     castle_area_outer.connect(brazen_machines, "Castle Area Outer to Brazen Machines")
-    brazen_machines.connect(castle_area_inner, "Brazen Machines to Castle Area Inner")
+    brazen_machines.connect(floor_is_lava, "Brazen Machines to The Floor Is Lava")
     castle_area_outer.connect(not_worth_it, "Castle Area Outer to Not Worth It!")
     ncsaow.connect(tower_of_sorrows, "Quarry Exit to Tower of Sorrows")
     ncsaow.connect(ydsgl, "Never Could See Any Other Way to You Definitely Shouldn't Go Left")
     main_hallway_right.connect(tower_of_sorrows, "Main Hallway Right to Tower of Sorrows")
     tower_of_sorrows.connect(ncsaow, "Tower of Sorrows to Never Could See Any Other Way")
-    tower_of_sorrows.connect(ydsgl, "Tower of Sorrows to You Definitely Shouldn't Go Left")
     tower_of_sorrows.connect(main_hallway_right, "Tower of Sorrows to Main Hallway Right")
     tower_of_sorrows.connect(tower_of_regrets, "Tower of Sorrows to Tower of Regrets")
     tower_of_regrets.connect(fiagl, "Tower of Regrets to Falling Into a Greener Life")
@@ -580,14 +747,19 @@ def create_regions_and_locations(world: WinTheGameWorld) -> None:
     underground.connect(mineshaft, "Underground to Mineshaft")
     starting_hallway.connect(ttlw_left, "Starting Hallway to Taking the Long Way (Left)")
     natwwal.connect(ttlw_right, "Not All Those Who Wander Are Lost to Taking the Long Way (Right)")
+    floor_is_lava.connect(clarity, "The Floor is Lava to Clarity Comes in Waves")
+    clarity.connect(attic_top, "Clarity Comes In Waves to Attic Storeroom (Top)")
 
     # Connections only with harder difficulty
     if world.options.logic_difficulty > 0: # Harder than normal
+        tower_of_sorrows.connect(ydsgl, "Tower of Sorrows to You Definitely Shouldn't Go Left", lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Left Spider Glove", "Spider Gloves"), world.player))
         main_hallway_right.connect(footholds, "Main Hallway Right to Footholds", lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Left Spider Glove", "Spider Gloves"), world.player))
+        castle_area_outer.connect(clarity, "Castle Area Outer to Clarity Comes in Waves", lambda state: state.has_any(("Left Spider Glove", "Spider Gloves", "Right Spider Glove"), world.player))
+        clarity.connect(floor_is_lava, "Clarity Comes in Waves to The Floor is Lava", lambda state: state.has_any(("Right Spider Glove", "Spider Gloves"), world.player))
 
         if world.options.logic_difficulty > 1: # Harder than hard
             # The Speedrun Strat
             starting_hallway.connect(exit_strategy, "You Have to Start the Game to Exit Strategy", lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Right Spider Glove", "Spider Gloves"), world.player))
 
-            #TODO add ool connection with springheel and left glove. its possible but it is some hot garbage. i refuse to put it in logic unless i add a difficulty past extreme (2).
-            castle_area_outer.connect(castle_area_inner, "Castle Area Outer to Castle Area Inner", lambda state: state.has("Springheel Boots", world.player) and state.has_any(("Spider Gloves", "Right Spider Glove"), world.player))
+            castle_area_outer.connect(attic_top, "Castle Area Outer to Attic Storeroom (Top)", lambda state: state.has_any(("Spider Gloves", "Right Spider Glove"), world.player))
+            attic_top.connect(clarity, "Attic Storeroom (Top) to Clarity Comes in Waves")

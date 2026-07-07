@@ -32,7 +32,7 @@ ITEM_IDS = {
     "Letter Y": 29,
     "Letter Z": 30,
     # 31-40: Traps.
-    "Lose The Game": 31,
+    "Lose the Game": 31,
     "Stop Jumping Trap": 32,
     "Secret Room Trap": 33,
     "Freeze Trap": 34,
@@ -41,8 +41,8 @@ ITEM_IDS = {
     "Left Spider Glove": 41,
     "Right Spider Glove": 42,
     "Unlock Teleporters": 43,
-    "Magic Word": 44,
-    "Magic Symbol": 45,
+    "Reveal Magic Word": 44,
+    "Reveal Magic Symbol": 45,
     "Unlock Quarry": 46,
     "Unlock Mineshaft": 47,
     "Unlock Castle": 48,
@@ -52,3 +52,5 @@ ITEM_IDS = {
     "Win the Game": 99,
     "Nothing": 100,
 }
+
+ID_TO_ITEM = {item_id: item for item, item_id in ITEM_IDS.items()}

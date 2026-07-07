@@ -22,6 +22,7 @@ VALID_PASSWORDS = [
     "DRINK",
 
     "EBONY",
+    "EIGHT",
     "ENTRY",
     "EQUAL"
     "EXIST",

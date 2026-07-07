@@ -1,40 +1,41 @@
 # remaining TODO
 
-# APWorld changes - 0.4.0
+# APWorld changes - future
 # Password Rando:
 #   Display magic word and symbol when obtained in client. Maybe use something like melee's trophy count.
-# Add support for multiple traps.
-# Make percentage counter in the bottom right more accurate.
-# Change roadblocks to be a OptionSet
-# bellsanity - can be checked by looking at respawn addresses
-
-# APWorld changes - 0.5.0
 # Switch from pymem to PyMemoryEditor for linux support
-
-# Really bad ideas
-# letters placed in locations that start with that letter (applies to other worlds)
+# Make percentage counter in the bottom right more accurate.
+# New goal condition - Percentage Hunt. percentage bundles have been scattered across the world. Find them all. Bundles can range from 2% all the way to 10%.
+# Add support for multiple traps.
+# Change roadblocks to be a OptionSet
+# Play the power up noise when finding a progression item.
 
 import asyncio
 from typing import TYPE_CHECKING
 tracker_loaded = False
 from CommonClient import gui_enabled, logger
+from sys import platform
 if TYPE_CHECKING:
     from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
 else:
     try:
-        from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
-        tracker_loaded = True
+        if platform != 'darwin':
+            from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
+            tracker_loaded = True
+        else:
+            raise ModuleNotFoundError
     except ModuleNotFoundError:
         from CommonClient import CommonContext as SuperContext
 
-from kvui import GameManager
 from pymem import Pymem
 from NetUtils import ClientStatus
-from .data.item_ids import ITEM_IDS
+from .data.item_ids import ITEM_IDS, ID_TO_ITEM
 from .data.location_ids import LOCATION_IDS
 from .data.room_coordinates import COORDS_TO_ROOM_NAME
+from .data.bell_coordinates import COORDS_TO_BELL_NAME
 from .data.client_constants import *
 import re
+# from kvui import MDLabel
 
 class WinTheGameContext(SuperContext):
     game = "You Have to Win the Game"
@@ -64,6 +65,11 @@ class WinTheGameContext(SuperContext):
     unlocked_castle = False
     unlocked_graveyard = False
     room_sanity = False
+    bell_sanity = False
+
+    cached_treasure_found: int = None
+    cached_last_room = (None, None)
+    cached_last_bell: str = None
 
     def __init__(self, server_address=None, password=None):
         super().__init__(server_address, password)
@@ -87,8 +93,9 @@ class WinTheGameContext(SuperContext):
             self.respawn_room_y_address = pointer + RESPAWN_ROOM_Y_OFFSET
             self.respawn_player_x_address = pointer + RESPAWN_PLAYER_X_OFFSET
             self.respawn_player_y_address = pointer + RESPAWN_PLAYER_Y_OFFSET
-            self.treasure_count_address = pointer + TREASURE_COUNT_OFFSET
+            self.treasures_found_address = pointer + TREASURES_FOUND_OFFSET
             self.treasure_vector_address = pointer + TREASURE_VECTOR_OFFSET
+            self.rooms_found_address = pointer + ROOMS_FOUND_OFFSET
             self.player_face_left_address = pointer + PLAYER_FACE_LEFT_OFFSET
             self.player_crouching_address = pointer + PLAYER_CROUCHING_OFFSET
 
@@ -106,6 +113,7 @@ class WinTheGameContext(SuperContext):
             self.room_x_address = room_pointer + ROOM_X_OFFSET
             self.room_y_address = room_pointer + ROOM_Y_OFFSET
             self.total_treasure_address = room_pointer + TOTAL_TREASURE_OFFSET
+            self.total_rooms_address = room_pointer + TOTAL_ROOMS_OFFSET
 
             self.room_name_address = self.WinTheGame.base_address + ROOM_NAME_OFFSET
             self.shown_campaign_message = False
@@ -130,7 +138,7 @@ class WinTheGameContext(SuperContext):
                 self.split_spider_gloves = True
             if args["slot_data"]["require_unlock_teleporters"]:
                 self.teleporters_locked = True
-            # if args["slot_data"]["password_rando"]:
+            # if args["slot_data"]["password_randomization"]:
             #     self.password_rando = True
             #     self.password = args["slot_data"]["password"]
             #     self.magic_word = args["slot_data"]["magic_word"]
@@ -143,9 +151,15 @@ class WinTheGameContext(SuperContext):
                 self.unlocked_graveyard = False
             if args["slot_data"]["room_sanity"]:
                 self.room_sanity = True
+            if args["slot_data"]["bell_sanity"]:
+                self.bell_sanity = True
+
+            # self.password_widget = MDLabel(text=f"", size_hint_x=None, width=120, halign="center")
+            # self.ui.connect_layout.add_widget(self.password_widget)
 
     def on_deathlink(self, data):
-        #TODO use data to tell the player who killed them. update room name really quick maybe? or paste in in the client.
+        # I need a better solution to show who deathlinked than to just paste it into the client
+        logger.info(data)
         self.WinTheGame.write_float(self.death_timer_address, 0.6)
     
     def get_current_room_coords(self) -> tuple[int, int]:
@@ -174,6 +188,7 @@ class WinTheGameContext(SuperContext):
         elif item == "Right Spider Glove":
             self.has_right_glove = True
 
+        # Ripping the letter from the item name like a barbarian.
         elif "Letter" in item and item[-1] not in self.unlocked_letters:
             self.unlocked_letters += item[-1]
 
@@ -191,6 +206,7 @@ class WinTheGameContext(SuperContext):
 
         elif item == "Unlock Teleporters":
             self.teleporters_locked = False
+            
         elif item == "Unlock Quarry":
             self.unlocked_quarry = True
         elif item == "Unlock Mineshaft":
@@ -201,9 +217,9 @@ class WinTheGameContext(SuperContext):
             self.unlocked_graveyard = True
 
         #TODO
-        elif item == "Magic Word":
+        elif item == "Reveal Magic Word":
             pass
-        elif item == "Magic Symbol":
+        elif item == "Reveal Magic Symbol":
             pass
 
         elif item == "Win the Game":
@@ -220,7 +236,7 @@ class WinTheGameContext(SuperContext):
             Freeze Trap (4):      01000
             Fast Trap (5):        10000
 
-        Duplicate trap receives are ignored (from uses like send item).
+        Duplicate trap receives are ignored (from uses like send_item).
         """
         #TODO: Add support for multiple instances of the same trap. in the meantime we using bitwise operations in this bitch.
         times_lost_value = self.WinTheGame.read_int(self.times_lost_address)
@@ -258,7 +274,21 @@ class WinTheGameContext(SuperContext):
         ui = super().make_gui()
         ui.base_title = "You Have to Win the Game Client"
         return ui
-
+    
+    # async def draw_password(self):
+    #     #TODO
+    #     # if no password rando, draw password with missing letters
+    #     # if password rando, add a separate label for the magic word and magic symbol,
+    #     # if both found, then display the draw the password
+    #     # Only call when letters change
+    #     password_display = ""
+    #     for char in self.password:
+    #         if char in self.unlocked_letters:
+    #             password_display += char
+    #         else:
+    #             password_display += "-"
+    #     self.password_widget.text = f"Password: {password_display}"
+            
 async def watch_game(ctx: WinTheGameContext):
     while not ctx.exit_event.is_set():
         if ctx.WinTheGame == None:
@@ -266,10 +296,10 @@ async def watch_game(ctx: WinTheGameContext):
             await asyncio.sleep(1)
             continue
 
-        # Campaign check. The original campaign only has 64. Client wont do anything unless someone uses a campaign with 68 treasures so its fine.
-        # I think this is also the guard to make sure the game doesn't send out all of my checks at the title screen.
-        # TODO wait until connected to spam this.
-        if ctx.WinTheGame.read_int(ctx.total_treasure_address) != 68: 
+        # Campaign check. The original campaign only has 64.
+        # Also the guard to make sure the game doesn't send out all of my checks at the title screen.
+        total_treasures = ctx.WinTheGame.read_int(ctx.total_treasure_address)
+        if total_treasures != 68: 
             if not ctx.shown_campaign_message:
                 logger.info("Please use the Archipelago campaign.")
                 ctx.shown_campaign_message = True
@@ -288,22 +318,38 @@ async def watch_game(ctx: WinTheGameContext):
                 await ctx.send_death(f"{ctx.player_names[ctx.slot]} died for the {nth(deaths)} time while traversing {COORDS_TO_ROOM_NAME[current_room][:-13]}.")
                 ctx.last_death = deaths
 
-        # The count can change and the address of the vector is dynamic.
-        treasure_count = ctx.WinTheGame.read_int(ctx.treasure_count_address)
-        treasure_vector = ctx.WinTheGame.read_int(ctx.treasure_vector_address)
         locations = []
-        for i in range(treasure_count):
-            locations.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
-        if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
-            locations.append(99)
-        if ctx.room_sanity and not in_secret_rooms: # Only checks for current room unlike the treasures. This means that any rooms explored before connecting to archipelago wont be saved.
-            locations.append(LOCATION_IDS[COORDS_TO_ROOM_NAME[current_room]])
-        await ctx.check_locations(locations)
+        treasures_found = ctx.WinTheGame.read_int(ctx.treasures_found_address)
+        if ctx.cached_treasure_found != treasures_found:
+            ctx.cached_treasure_found = treasures_found
+            # The address of the vector is dynamic.
+            treasure_vector = ctx.WinTheGame.read_int(ctx.treasure_vector_address)
+            # Keeping this loop. I would like treasures to send out missing checks on disconnect/reconnect, since they disappear in the world after collection.
+            for i in range(treasures_found):
+                locations.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
+            if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
+                locations.append(99)
+        if not in_secret_rooms:
+            # These next check types are checked once unlike the treasures. 
+            # This means that any rooms explored or bells rung before connecting to archipelago wont be saved.
+            if ctx.room_sanity and ctx.cached_last_room != current_room: 
+                locations.append(LOCATION_IDS[COORDS_TO_ROOM_NAME[current_room]])
+                ctx.cached_last_room = current_room
+            if ctx.bell_sanity:
+                latest_checkpoint = (ctx.WinTheGame.read_float(ctx.respawn_player_x_address), ctx.WinTheGame.read_float(ctx.respawn_player_y_address), 
+                                     (ctx.WinTheGame.read_int(ctx.respawn_room_x_address), ctx.WinTheGame.read_int(ctx.respawn_room_y_address)))
+                try:
+                    bell = COORDS_TO_BELL_NAME[latest_checkpoint] # Starting the game and the secret rooms will break this line.
+                    if ctx.cached_last_bell != bell:
+                        ctx.cached_last_bell = bell
+                        locations.append(LOCATION_IDS[bell])
+                except KeyError:
+                    pass
+        if len(locations) != 0: # Only call this when needed, because oh my god ive been calling it every 10 ms in v0.3.0.
+            await ctx.check_locations(locations)
 
-        recieved_item_ids = [network_item.item for network_item in ctx.items_received]
-        for item, item_id in ITEM_IDS.items():
-            if item_id in recieved_item_ids:
-                ctx.give_item(item)
+        for network_item in ctx.items_received:
+            ctx.give_item(ID_TO_ITEM[network_item.item])
 
         if ctx.split_spider_gloves:
             if (ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1) or (ctx.has_right_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 0):
@@ -349,11 +395,11 @@ async def watch_game(ctx: WinTheGameContext):
                     letter_mismatch = True
             if letter_mismatch:
                 ctx.teleport_player(272.0, 110.0) # placing the player directly on the portal coordinates actually doesn't work. Need to place slightly higher
-        elif current_room == (0, -5) and ctx.password_rando: # Warp Right
-            room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 50))
-            if room_name == ctx.password:
-                await asyncio.sleep(1)
-                ctx.teleport_player_to_room(-1, -2, 160.0, 80.0) # Open Sesame
+        # elif current_room == (0, -5) and ctx.password_rando: # Warp Right
+        #     room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 50))
+        #     if room_name == ctx.password:
+        #         await asyncio.sleep(1)
+        #         ctx.teleport_player_to_room(-1, -2, 160.0, 80.0) # Open Sesame
 
         # Player anti-softlock.
         if ctx.WinTheGame.read_uchar(ctx.player_crouching_address) and not in_secret_rooms:
@@ -362,6 +408,10 @@ async def watch_game(ctx: WinTheGameContext):
             crouch_time = 0
         if crouch_time >= 50: # Five seconds, since every loop is 0.1 seconds
             ctx.teleport_player_to_room(-3, 0, 76.0, 140.0) # You Have to Start the Game
+
+        # # Password display.
+        # if ctx.ui:
+        #     await ctx.draw_password()
 
         if ctx.finished_game:
             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
