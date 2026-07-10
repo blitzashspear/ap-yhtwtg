@@ -31,18 +31,21 @@ def create_all_items(world: WinTheGameWorld) -> None:
         itempool.append(world.create_item("Spider Gloves"))
 
     password = "SUPER"
+    # TODO uncomment out for password rando
     # if world.options.password_randomization > 0:
     #     if world.options.password_randomization == 1: # Words
-    #         password = world.multiworld.random.choice(VALID_PASSWORDS)
+    #         password = world.random.choice(VALID_PASSWORDS)
     #     elif world.options.password_randomization == 2: # Any
-    #         password = world.multiworld.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
+    #         password = world.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
     #     itempool.append(world.create_item("Reveal Magic Word"))
     #     itempool.append(world.create_item("Reveal Magic Symbol"))
-    #     magic_symbol = world.multiworld.random.randrange(1, 10) # 1-9
+    #     magic_symbol = world.random.randrange(-9, 10) # -9 to 9
     #     magic_word = ""
     #     for letter in password:
-    #         ascii = ord(letter) - magic_symbol
-    #         if ascii < ord("A"):
+    #         ascii = ord(letter) + magic_symbol
+    #         if ascii > ord("Z"):
+    #             ascii -= 26
+    #         elif ascii < ord("A"):
     #             ascii += 26
     #         magic_word += chr(ascii)
     #     world.password = password
@@ -50,33 +53,41 @@ def create_all_items(world: WinTheGameWorld) -> None:
     #     world.magic_symbol = magic_symbol
 
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-        # if letter in password or world.options.hide_letter_classification:
         if letter in password:
             itempool.append(create_item_with_custom_classification(world, f"Letter {letter}", ItemClassification.progression_skip_balancing))
         else:
             itempool.append(world.create_item(f"Letter {letter}"))
 
-    if world.options.shuffle_lose_the_game:
-        itempool.append(world.create_item("Lose the Game"))
-
-    if world.options.shuffle_secret_rooms_trap:
-        itempool.append(world.create_item("Secret Room Trap"))  
-
-    if world.options.shuffle_stop_jumping_trap:
-        itempool.append(world.create_item("Stop Jumping Trap"))
-    
-    if world.options.shuffle_freeze_trap:
-        itempool.append(world.create_item("Freeze Trap"))
-
-    if world.options.shuffle_fast_trap:
-        itempool.append(world.create_item("Fast Trap"))
-
     if world.options.require_unlock_teleporters:
         itempool.append(world.create_item("Unlock Teleporters"))
 
-    if world.options.include_extra_roadblocks:
-        for roadblock in ["Castle", "Graveyard", "Mineshaft", "Quarry"]:
-            itempool.append(world.create_item(f"Unlock {roadblock}"))
+    for roadblock in world.options.include_extra_roadblocks:
+        itempool.append(world.create_item(f"Unlock {roadblock}"))
+
+    if world.options.shuffle_cat_dlc:
+        itempool.append(world.create_item("Playable Cat DLC*"))
+
+    if world.options.trap_percentage > 0:
+        nothing_amount = len(world.multiworld.get_unfilled_locations(world.player)) - len(itempool)
+        traps = world.random.choices(
+            population=[
+                "Lose the Game",
+                "Stop Jumping Trap",
+                "Secret Room Trap",
+                "Freeze Trap",
+                "Fast Trap"
+            ],
+            weights=[
+                world.options.lose_the_game_weight,
+                world.options.stop_jumping_trap_weight,
+                world.options.secret_rooms_trap_weight,
+                world.options.freeze_trap_weight,
+                world.options.fast_trap_weight
+            ],
+            k=nothing_amount * world.options.trap_percentage // 100
+        )
+        for trap in traps:
+            itempool.append(world.create_item(trap))
 
     # Pre-places a percentage of "Nothing" items locally. 
     # Will set aside an arbitrary number of sphere one locations (2) at random.

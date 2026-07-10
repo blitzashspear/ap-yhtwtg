@@ -51,6 +51,8 @@ ITEM_CLASSIFICATIONS = {
     "Unlock Castle": ItemClassification.progression,
     "Unlock Graveyard": ItemClassification.progression,
 
+    "Playable Cat DLC*": ItemClassification.filler,
+
     "Win the Game": ItemClassification.progression,
-    "Nothing": ItemClassification.filler,
+    "Nothing": ItemClassification.filler
 }

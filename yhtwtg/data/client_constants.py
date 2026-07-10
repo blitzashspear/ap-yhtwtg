@@ -14,7 +14,7 @@ SPIDER_GLOVES_OFFSET = 0x87
 TREASURES_FOUND_OFFSET = 0x88
 TREASURE_VECTOR_OFFSET = 0x98
 ROOMS_FOUND_OFFSET = 0x9C
-TIMES_LOST_OFFSET = 0xB4
+TIMES_LOST_OFFSET = 0xB4 # Repurposed for keeping track of how many items the save has recieved.
 TIMES_WON_OFFSET = 0xB8
 
 #only use with offshoot of player data chain
@@ -35,6 +35,7 @@ ROOM_X_OFFSET = 0x697C
 ROOM_Y_OFFSET = 0x6980
 TOTAL_TREASURE_OFFSET = 0x6B70
 TOTAL_ROOMS_OFFSET = 0x6B74 # Technically not counting the secret rooms, which have a different offset of 0x6B78
+PLAYER_IS_CAT_OFFSET = 0x6B95
 
 #static
 ROOM_NAME_OFFSET = 0x1DD538

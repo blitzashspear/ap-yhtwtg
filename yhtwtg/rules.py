@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from .__init__ import WinTheGameWorld
 
 def set_all_rules(world: WinTheGameWorld) -> None:
-    #TODO make region for stick the landing, as mushroom stairs and not all those who wander connect to it trivially.
     def needs_item(state: CollectionState, item: str):
         return state.has(item, world.player)
     def needs_glove(state: CollectionState, dir: str):
@@ -17,6 +16,9 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         return state.has("Spider Gloves", world.player) or state.has_all(("Left Spider Glove", "Right Spider Glove"), world.player)
     def right_or_jump_and_left(state: CollectionState):
         return needs_glove(state, "Right") or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player)
+    def has_password(state: CollectionState):
+        # items get generated before rules so this fucked up line of code should work
+        return state.has_all((f"Letter {world.password[0]}", f"Letter {world.password[1]}", f"Letter {world.password[2]}", f"Letter {world.password[3]}", f"Letter {world.password[4]}"), world.player)
     # REGION / ROOM RULES
     set_rule(world.get_entrance("Main Hallway Left to Hydra's Corner"), lambda state: needs_glove(state, "Right"))
     set_rule(world.get_entrance("Main Hallway Left to Upstream"), lambda state: needs_either_glove(state))
@@ -40,7 +42,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     set_rule(world.get_entrance("From Another World to Playing with Fire"), lambda state: state.has_any(("Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))
     set_rule(world.get_entrance("Playing with Fire to Exit Strategy"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Left"))
     set_rule(world.get_entrance("Exit Strategy to End Game Area"), lambda state: needs_item(state, "Springheel Boots") and needs_both_gloves(state))
-    set_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Letter E", "Letter P", "Letter R", "Letter S", "Letter U"), world.player))
+    set_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: has_password(state))
     set_rule(world.get_entrance("Mushroom Stairs to On the Count of Three"), lambda state: needs_glove(state, "Right"))
     set_rule(world.get_entrance("Main Hallway Left to Not All Those Who Wander Are Lost"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Right"))
     set_rule(world.get_entrance("Not All Those Who Wander Are Lost to Leap of Faith"), lambda state: needs_glove(state, "Left"))
@@ -65,14 +67,18 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         set_rule(world.get_entrance("End Game Area to Password Puzzle"), lambda state: state.has("Unlock Teleporters", world.player))
         set_rule(world.get_entrance("Leap of Faith to Cat Level Entrance"), lambda state: state.has("Unlock Teleporters", world.player))
 
-    if world.options.include_extra_roadblocks:
+    if "Quarry" in world.options.include_extra_roadblocks:
         set_rule(world.get_entrance("Main Hallway Left to Quarry"), lambda state: state.has("Unlock Quarry", world.player))
+    if "Castle" in world.options.include_extra_roadblocks:
         set_rule(world.get_entrance("Mushroom Stairs to Castle Area Outer"), lambda state: state.has("Unlock Castle", world.player))
+    if "Graveyard" in world.options.include_extra_roadblocks:
         set_rule(world.get_entrance("Main Hallway Right to Graveyard"), lambda state: state.has("Unlock Graveyard", world.player))
+    if "Mineshaft" in world.options.include_extra_roadblocks:
         set_rule(world.get_entrance("Underground to Mineshaft"), lambda state: state.has("Unlock Mineshaft", world.player))
 
-    # if world.options.password_randomization: # Technically not required but will be required logically.
-    #     add_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Magic Word", "Magic Symbol"), world.player), "or")
+    # TODO uncomment out for password rando
+    # if world.options.password_randomization: # Not enforced but will be required logically.
+    #     add_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Reveal Magic Word", "Reveal Magic Symbol"), world.player))
 
     # TREASURE RULES
     set_rule(world.get_location("Arcane Vocabulary - Top Treasure"), lambda state: needs_item(state, "Springheel Boots"))
@@ -105,15 +111,17 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     set_rule(world.get_location("Tower of Regrets - Treasure"), lambda state: needs_either_glove(state) or state.can_reach_region("Euclid Shrugged", world.player))
     set_rule(world.get_location("Uncertain Semiotics - Treasure"), lambda state: needs_item(state, "Springheel Boots"))
     set_rule(world.get_location("You Have to Start the Game - Treasure"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Left"))
+    if world.options.logic_difficulty > 1: # Harder than hard
+        set_rule(world.get_location("You Have to Start the Game - Treasure"), lambda state: needs_item(state, "Springheel Boots") and needs_either_glove(state))
 
     # BELL RULES
     if world.options.bell_sanity:
         set_rule(world.get_location("Forgotten Tunnels - Bottom Bell"), lambda state: state.can_reach_location("Forgotten Tunnels - Left Treasure", world.player))
         set_rule(world.get_location("Hops and Skips - Bottom Bell"), lambda state: state.can_reach_location("Hops and Skips - Treasure", world.player))
+        set_rule(world.get_location("Hydra Is Myth - Bell"), lambda state: state.can_reach_location("Hydra Is Myth - Treasure", world.player))
         set_rule(world.get_location("Tower of Sorrows - Left Bell"), lambda state: state.can_reach_region("You Definitely Shouldn't Go Left", world.player))
         set_rule(world.get_location("Tower of Sorrows - Right Bell"), lambda state: state.can_reach_location("Contrived Lock/Key Mechanisms - Treasure", world.player))
         set_rule(world.get_location("You Definitely Shouldn't Go Left - Top Bell"), lambda state: state.can_reach_region("Never Could See Any Other Way", world.player))
 
     # UT doesn't understand go mode. And according to the discord I don't think it ever will because I use an item for goaling.
-    # Also please for the love of god do not capitalize the "the" I fucked that up TWICE now.
     world.multiworld.completion_condition[world.player] = lambda state: needs_item(state, "Win the Game")

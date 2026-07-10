@@ -17,7 +17,7 @@ components.append(
         func=launch_client,
         game_name="You Have to Win the Game",
         component_type=Type.CLIENT,
-        icon="wintheicon",
+        icon="wintheicon"
     )
 )
 icon_paths["wintheicon"] = f"ap:{__name__}/icons/wintheicon.png"
@@ -32,7 +32,7 @@ class WinTheGameWebWorld(WebWorld):
         "English",
         "setup_en.md",
         "setup/en",
-        ["blitzashspear"],
+        ["blitzashspear"]
     )
     option_groups = option_groups
     tutorials = [setup_en]
@@ -72,16 +72,24 @@ class WinTheGameWorld(World):
     
     def fill_slot_data(self):
         return {
+            # Please for the love of christ stop forgetting to put .value on the yaml options.
             "room_sanity": self.options.room_sanity.value,
             "bell_sanity": self.options.bell_sanity.value,
             "death_link": self.options.death_link.value,
             "death_link_amnesty": self.options.death_link_amnesty.value,
+            "death_link_behavior": self.options.death_link_behavior.value,
+            "stop_jumping_trap_length": self.options.stop_jumping_trap_length.value,
+            "freeze_trap_length": self.options.freeze_trap_length.value,
+            "fast_trap_length": self.options.fast_trap_length.value,
             "split_spider_gloves": self.options.split_spider_gloves.value,
             "require_unlock_teleporters": self.options.require_unlock_teleporters.value,
             "logic_difficulty": self.options.logic_difficulty.value,
             "include_extra_roadblocks": self.options.include_extra_roadblocks.value,
-            
+            "reset_timer": self.options.reset_timer.value,
+            #TODO uncomment out for password rando
             # "password_randomization": self.options.password_randomization.value,
+            # "display_password_letters": self.options.display_password_letters.value,
+
             # "password": self.password,
             # "magic_word": self.magic_word,
             # "magic_symbol": self.magic_symbol
@@ -101,4 +109,5 @@ class WinTheGameWorld(World):
             self.options.require_unlock_teleporters.value = self.passthrough["require_unlock_teleporters"]
             self.options.logic_difficulty.value = self.passthrough["logic_difficulty"]
             self.options.include_extra_roadblocks.value = self.passthrough["include_extra_roadblocks"]
-            # self.options.password_randomization = self.passthrough["pasword_randomization"]
+            # TODO uncomment out for password rando
+            # self.options.password_randomization.value = self.passthrough["password_randomization"]

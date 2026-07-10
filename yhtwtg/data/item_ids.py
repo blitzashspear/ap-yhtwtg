@@ -48,9 +48,12 @@ ITEM_IDS = {
     "Unlock Castle": 48,
     "Unlock Graveyard": 49,
 
+    # 51-98: Extra Filler
+    "Playable Cat DLC*": 51,
+
     # Other items
     "Win the Game": 99,
-    "Nothing": 100,
+    "Nothing": 100
 }
 
 ID_TO_ITEM = {item_id: item for item, item_id in ITEM_IDS.items()}
