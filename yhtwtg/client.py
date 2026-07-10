@@ -176,15 +176,16 @@ class WinTheGameContext(SuperContext):
 
     # Receiving DeathLinks
     def on_deathlink(self, data):
-        if data["source"] != self.player_names[self.slot]:
-            logger.info(data["cause"])
-        self.WinTheGame.write_float(self.death_timer_address, 0.6)
-        # Hacky and stupid but so is the rest of my code !! !
-        if self.death_link_behavior == "reset":
-            async def reset_after_60_ms():
-                await asyncio.sleep(0.6)
-                self.teleport_player_to_room(-3, 0, 76.0, 140.0) # You Have to Start the Game
-            asyncio.create_task(reset_after_60_ms())
+        if not self.is_cat:
+            if data["source"] != self.player_names[self.slot]:
+                logger.info(data["cause"])
+            self.WinTheGame.write_float(self.death_timer_address, 0.6)
+            # Hacky and stupid but so is the rest of my code !! !
+            if self.death_link_behavior == "reset":
+                async def reset_after_60_ms():
+                    await asyncio.sleep(0.6)
+                    self.teleport_player_to_room(-3, 0, 76.0, 140.0) # You Have to Start the Game
+                asyncio.create_task(reset_after_60_ms())
             
     def get_current_room_coords(self) -> tuple[int, int]:
         return (self.WinTheGame.read_int(self.room_x_address), self.WinTheGame.read_int(self.room_y_address))
