@@ -217,7 +217,8 @@ class WinTheGameContext(SuperContext):
         elif item == "Stop Jumping Trap":
             asyncio.create_task(self.apply_stop_jumping_trap())
         elif item == "Secret Room Trap":
-            self.before_secret_room_data = (self.get_current_room_coords(), self.get_player_coords())
+            if self.get_current_room_coords() not in SECRET_ROOM_COORDS:
+                self.before_secret_room_data = (self.get_current_room_coords(), self.get_player_coords())
             self.teleport_player_to_room(3, -4, 73.0, 76.0) # Spiral Out
         elif item == "Freeze Trap":
             asyncio.create_task(self.apply_room_speed_trap(0.0, self.freeze_trap_length))
@@ -327,8 +328,8 @@ async def watch_game(ctx: WinTheGameContext):
             # Keeping this loop. I would like treasures to send out missing checks on disconnect/reconnect, since they disappear in the world after collection.
             for i in range(treasures_found):
                 locations.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
-            if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
-                locations.append(99)
+        if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
+            locations.append(99)
         # These next check types are checked once unlike the treasures. 
         # This means that any rooms explored or bells rung before connecting to Archipelago wont be saved.
         # Anything in the secret rooms will result in a KeyError.

@@ -21,14 +21,15 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         return state.has_all((f"Letter {world.password[0]}", f"Letter {world.password[1]}", f"Letter {world.password[2]}", f"Letter {world.password[3]}", f"Letter {world.password[4]}"), world.player)
     # REGION / ROOM RULES
     set_rule(world.get_entrance("Main Hallway Left to Hydra's Corner"), lambda state: needs_glove(state, "Right"))
-    set_rule(world.get_entrance("Main Hallway Left to Upstream"), lambda state: needs_either_glove(state))
+    set_rule(world.get_entrance("Main Hallway Left to Upstream"), lambda state: needs_either_glove(state) or needs_item(state, "Springheel Boots"))
     set_rule(world.get_entrance("Quarry to Map Room"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Right"))
     set_rule(world.get_entrance("Quarry to Never Could See Any Other Way"), lambda state: needs_item(state, "Cerulean Aura"))
     set_rule(world.get_entrance("Main Hallway Right to Shelter"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots"), world.player))
     set_rule(world.get_entrance("Shelter to Footholds"), lambda state: needs_item(state, "Cerulean Aura"))
     set_rule(world.get_entrance("Footholds to Mushroom Stairs"), lambda state: needs_item(state, "Springheel Boots"))
     set_rule(world.get_entrance("Castle Area Outer to Brazen Machines"), lambda state: needs_glove(state, "Right"))
-    set_rule(world.get_entrance("Brazen Machines to The Floor Is Lava"), lambda state: needs_glove(state, "Left"))
+    if world.options.logic_difficulty == 0: # Normal
+        set_rule(world.get_entrance("Brazen Machines to The Floor Is Lava"), lambda state: needs_glove(state, "Left"))
     set_rule(world.get_entrance("Castle Area Outer to Not Worth It!"), lambda state: needs_item(state, "Cerulean Aura"))
     set_rule(world.get_entrance("Main Hallway Right to Tower of Sorrows"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))   
     set_rule(world.get_entrance("Tower of Sorrows to You Definitely Shouldn't Go Left"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))

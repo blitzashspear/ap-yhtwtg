@@ -39,7 +39,7 @@ def create_all_items(world: WinTheGameWorld) -> None:
     #         password = world.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
     #     itempool.append(world.create_item("Reveal Magic Word"))
     #     itempool.append(world.create_item("Reveal Magic Symbol"))
-    #     magic_symbol = world.random.randrange(-9, 10) # -9 to 9
+    #     magic_symbol = world.random.choice([i for i in range(-9, 10) if i != 0]) # -9 to -1 and 1 to 9
     #     magic_word = ""
     #     for letter in password:
     #         ascii = ord(letter) + magic_symbol
