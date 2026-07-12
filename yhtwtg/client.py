@@ -258,9 +258,11 @@ class WinTheGameContext(SuperContext):
 
     async def apply_stop_jumping_trap(self):
         max_jumps_value = self.WinTheGame.read_int(self.max_jumps_address)
-        self.WinTheGame.write_int(self.max_jumps_address, 0)
-        await asyncio.sleep(self.stop_jumping_trap_length)
-        self.WinTheGame.write_int(self.max_jumps_address, max_jumps_value)
+        if max_jumps_value != 0:
+            self.stored_max_jumps = max_jumps_value
+            self.WinTheGame.write_int(self.max_jumps_address, 0)
+            await asyncio.sleep(self.stop_jumping_trap_length)
+            self.WinTheGame.write_int(self.max_jumps_address, self.stored_max_jumps)
 
     async def apply_room_speed_trap(self, speed: float, seconds: int):
         self.WinTheGame.write_float(self.room_speed_address, speed)
