@@ -76,6 +76,7 @@ class WinTheGameContext(SuperContext):
 
     reset_timer = 1000000
     display_password_letters = True
+    connected = False
 
     def __init__(self, server_address=None, password=None):
         super().__init__(server_address, password)
@@ -138,6 +139,7 @@ class WinTheGameContext(SuperContext):
         # if i add shit here in the future, go to world.py, fill_slot_data and update that too
         super().on_package(cmd, args) # for UT
         if cmd in {"Connected"}:
+            self.connected = True
             if args["slot_data"]["room_sanity"]:
                 self.room_sanity = True
             if args["slot_data"]["bell_sanity"]:
@@ -323,48 +325,48 @@ async def watch_game(ctx: WinTheGameContext):
                 await ctx.send_death(f"{ctx.player_names[ctx.slot]} died for the {nth(deaths)} time while traversing {COORDS_TO_ROOM_NAME[current_room][:-13]}.")
                 ctx.last_death_link = deaths
 
-        locations = []
-        treasures_found = ctx.WinTheGame.read_int(ctx.treasures_found_address)
-        if ctx.cached_treasure_found != treasures_found:
-            ctx.cached_treasure_found = treasures_found
-            # The address of the vector is dynamic.
-            treasure_vector = ctx.WinTheGame.read_int(ctx.treasure_vector_address)
-            # Keeping this loop. I would like treasures to send out missing checks on disconnect/reconnect, since they disappear in the world after collection.
-            for i in range(treasures_found):
-                locations.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
-        if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
-            locations.append(99)
-        # These next check types are checked once unlike the treasures. 
-        # This means that any rooms explored or bells rung before connecting to Archipelago wont be saved.
-        # Anything in the secret rooms will result in a KeyError.
-        try:
-            if ctx.room_sanity and ctx.cached_last_room != current_room: 
-                locations.append(LOCATION_IDS[COORDS_TO_ROOM_NAME[current_room]])
-                ctx.cached_last_room = current_room
-            if ctx.bell_sanity:
-                latest_checkpoint = (ctx.WinTheGame.read_float(ctx.respawn_player_x_address), ctx.WinTheGame.read_float(ctx.respawn_player_y_address), 
-                                     (ctx.WinTheGame.read_int(ctx.respawn_room_x_address), ctx.WinTheGame.read_int(ctx.respawn_room_y_address)))
-                bell = COORDS_TO_BELL_NAME[latest_checkpoint]
-                if ctx.cached_last_bell != bell:
-                    ctx.cached_last_bell = bell
-                    locations.append(LOCATION_IDS[bell])
-        except KeyError:
-            pass
-        if len(locations) != 0:
-            await ctx.check_locations(locations)
+        if ctx.connected:
+            locations = []
+            treasures_found = ctx.WinTheGame.read_int(ctx.treasures_found_address)
+            if ctx.cached_treasure_found != treasures_found:
+                ctx.cached_treasure_found = treasures_found
+                # The address of the vector is dynamic.
+                treasure_vector = ctx.WinTheGame.read_int(ctx.treasure_vector_address)
+                # I would like treasures to send out missing checks on disconnect/reconnect, since they disappear in the world after collection.
+                for i in range(treasures_found):
+                    locations.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
+            if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
+                locations.append(99)
+            # These next check types are checked once unlike the treasures. 
+            # This means that any rooms explored or bells rung before connecting to Archipelago wont be saved.
+            # Anything in the secret rooms will result in a KeyError.
+            try:
+                if ctx.room_sanity and ctx.cached_last_room != current_room: 
+                    locations.append(LOCATION_IDS[COORDS_TO_ROOM_NAME[current_room]])
+                    ctx.cached_last_room = current_room
+                if ctx.bell_sanity:
+                    latest_checkpoint = (ctx.WinTheGame.read_float(ctx.respawn_player_x_address), ctx.WinTheGame.read_float(ctx.respawn_player_y_address), 
+                                        (ctx.WinTheGame.read_int(ctx.respawn_room_x_address), ctx.WinTheGame.read_int(ctx.respawn_room_y_address)))
+                    bell = COORDS_TO_BELL_NAME[latest_checkpoint]
+                    if ctx.cached_last_bell != bell:
+                        ctx.cached_last_bell = bell
+                        locations.append(LOCATION_IDS[bell])
+            except KeyError:
+                pass
+            if len(locations) != 0:
+                await ctx.check_locations(locations)
 
-        # had to specify the type to keep pylance working. ugly af
-        times_lost: int = ctx.WinTheGame.read_int(ctx.times_lost_address)
-        amount_of_received_items = len(ctx.items_received)
         if not ctx.resynced: # Resyncing items, but not traps upon client closing and re-opening.
             ctx.WinTheGame.write_int(ctx.times_lost_address, 0)
+        times_lost: int = ctx.WinTheGame.read_int(ctx.times_lost_address) # had to specify the type to keep pylance working. ugly af
+        amount_of_received_items = len(ctx.items_received)
         if times_lost != amount_of_received_items:
             while times_lost != amount_of_received_items:
                 ctx.give_item(ID_TO_ITEM[ctx.items_received[times_lost].item])
                 times_lost += 1
             ctx.WinTheGame.write_int(ctx.times_lost_address, times_lost)
-        if not ctx.resynced:
-            ctx.resynced = True
+            if not ctx.resynced:
+                ctx.resynced = True
 
         if ctx.split_spider_gloves:
             left_check = ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1
