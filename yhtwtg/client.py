@@ -194,7 +194,7 @@ class WinTheGameContext(SuperContext):
     def get_player_coords(self) -> tuple[float, float]:
         return (round(self.WinTheGame.read_float(self.player_x_address), 1), round(self.WinTheGame.read_float(self.player_y_address), 1))
 
-    def give_item(self, item: str, resync: bool) -> None:
+    def give_item(self, item: str) -> None:
         if item == "Cerulean Aura":
             self.WinTheGame.write_uchar(self.cerulean_aura_address, 1)
         elif item == "Crimson Aura":
@@ -213,17 +213,18 @@ class WinTheGameContext(SuperContext):
         elif "Letter" in item and item[-1] not in self.unlocked_letters:
             self.unlocked_letters += item[-1]
 
-        elif item == "Lose the Game" and not resync:
+        # If resyncing is just me going through all of the items again I don't want to trigger traps.
+        elif item == "Lose the Game" and self.resynced:
             self.teleport_player_to_room(-3, 0, 76.0, 140.0) # You Have to Start the Game
-        elif item == "Stop Jumping Trap" and not resync:
+        elif item == "Stop Jumping Trap" and self.resynced:
             asyncio.create_task(self.apply_stop_jumping_trap())
-        elif item == "Secret Room Trap" and not resync:
+        elif item == "Secret Room Trap" and self.resynced:
             if self.get_current_room_coords() not in SECRET_ROOM_COORDS:
                 self.before_secret_room_data = (self.get_current_room_coords(), self.get_player_coords())
             self.teleport_player_to_room(3, -4, 73.0, 76.0) # Spiral Out
-        elif item == "Freeze Trap" and not resync:
+        elif item == "Freeze Trap" and self.resynced:
             asyncio.create_task(self.apply_room_speed_trap(0.0, self.freeze_trap_length))
-        elif item == "Fast Trap" and not resync:
+        elif item == "Fast Trap" and self.resynced:
             asyncio.create_task(self.apply_room_speed_trap(4.0, self.fast_trap_length))
 
         elif item == "Unlock Teleporters":
@@ -357,12 +358,13 @@ async def watch_game(ctx: WinTheGameContext):
         amount_of_received_items = len(ctx.items_received)
         if not ctx.resynced: # Resyncing items, but not traps upon client closing and re-opening.
             ctx.WinTheGame.write_int(ctx.times_lost_address, 0)
-            ctx.resynced = True
         if times_lost != amount_of_received_items:
             while times_lost != amount_of_received_items:
                 ctx.give_item(ID_TO_ITEM[ctx.items_received[times_lost].item], ctx.resynced)
                 times_lost += 1
             ctx.WinTheGame.write_int(ctx.times_lost_address, times_lost)
+        if not ctx.resynced:
+            ctx.resynced = True
 
         if ctx.split_spider_gloves:
             left_check = ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1
