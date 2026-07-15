@@ -360,7 +360,7 @@ async def watch_game(ctx: WinTheGameContext):
             ctx.WinTheGame.write_int(ctx.times_lost_address, 0)
         if times_lost != amount_of_received_items:
             while times_lost != amount_of_received_items:
-                ctx.give_item(ID_TO_ITEM[ctx.items_received[times_lost].item], ctx.resynced)
+                ctx.give_item(ID_TO_ITEM[ctx.items_received[times_lost].item])
                 times_lost += 1
             ctx.WinTheGame.write_int(ctx.times_lost_address, times_lost)
         if not ctx.resynced:
