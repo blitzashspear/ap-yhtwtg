@@ -124,5 +124,4 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         set_rule(world.get_location("Tower of Sorrows - Right Bell"), lambda state: state.can_reach_location("Contrived Lock/Key Mechanisms - Treasure", world.player))
         set_rule(world.get_location("You Definitely Shouldn't Go Left - Top Bell"), lambda state: state.can_reach_region("Never Could See Any Other Way", world.player))
 
-    # UT doesn't understand go mode. And according to the discord I don't think it ever will because I use an item for goaling.
-    world.multiworld.completion_condition[world.player] = lambda state: needs_item(state, "Win the Game")
+    world.multiworld.completion_condition[world.player] = lambda state: state.can_reach_location("Eponymous - Win the Game", world.player)
