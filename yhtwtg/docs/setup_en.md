@@ -2,6 +2,7 @@
 
 *Required Software*
 
+- [A Windows Steam installation of You Have to Win the Game](https://store.steampowered.com/app/286100/You_Have_to_Win_the_Game/) (it's free!)
 - [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases/latest)
 - [The APWorld & Game Mods](https://github.com/blitzashspear/ap-yhtwtg/releases/latest)
 
