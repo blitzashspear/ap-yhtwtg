@@ -31,30 +31,29 @@ def create_all_items(world: WinTheGameWorld) -> None:
         itempool.append(world.create_item("Spider Gloves"))
 
     password = "SUPER"
-    # TODO uncomment out for password rando
-    # if world.options.password_randomization > 0:
-    #     if world.options.password_randomization == 1: # Words
-    #         password = world.random.choice(VALID_PASSWORDS)
-    #     elif world.options.password_randomization == 2: # Any
-    #         password = world.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
-    #     itempool.append(world.create_item("Reveal Magic Word"))
-    #     itempool.append(world.create_item("Reveal Magic Symbol"))
-    #     magic_symbol = world.random.choice([i for i in range(-9, 10) if i != 0]) # -9 to -1 and 1 to 9
-    #     magic_word = ""
-    #     for letter in password:
-    #         ascii = ord(letter) + magic_symbol
-    #         if ascii > ord("Z"):
-    #             ascii -= 26
-    #         elif ascii < ord("A"):
-    #             ascii += 26
-    #         magic_word += chr(ascii)
-    #     world.password = password
-    #     world.magic_word = magic_word
-    #     world.magic_symbol = magic_symbol
+    if world.options.password_randomization > 0:
+        if world.options.password_randomization == 1: # Words
+            password = world.random.choice(VALID_PASSWORDS)
+        elif world.options.password_randomization == 2: # Any
+            password = world.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
+        itempool.append(world.create_item("Reveal Magic Word"))
+        itempool.append(world.create_item("Reveal Magic Symbol"))
+        magic_symbol = world.random.choice([i for i in range(-9, 10) if i != 0]) # -9 to -1 and 1 to 9
+        magic_word = ""
+        for letter in password:
+            ascii = ord(letter) + magic_symbol
+            if ascii > ord("Z"):
+                ascii -= 26
+            elif ascii < ord("A"):
+                ascii += 26
+            magic_word += chr(ascii)
+        world.password = password
+        world.magic_word = magic_word
+        world.magic_symbol = magic_symbol
 
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
         if letter in password:
-            itempool.append(create_item_with_custom_classification(world, f"Letter {letter}", ItemClassification.progression_skip_balancing))
+            itempool.append(create_item_with_custom_classification(world, f"Letter {letter}", ItemClassification.progression_deprioritized_skip_balancing))
         else:
             itempool.append(world.create_item(f"Letter {letter}"))
 

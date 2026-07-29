@@ -17,8 +17,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     def right_or_jump_and_left(state: CollectionState):
         return needs_glove(state, "Right") or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player)
     def has_password(state: CollectionState):
-        # items get generated before rules so this fucked up line of code should work
-        return state.has_all((f"Letter {world.password[0]}", f"Letter {world.password[1]}", f"Letter {world.password[2]}", f"Letter {world.password[3]}", f"Letter {world.password[4]}"), world.player)
+        return state.has_all((f"Letter {letter}" for letter in world.password), world.player)
     # REGION / ROOM RULES
     set_rule(world.get_entrance("Main Hallway Left to Hydra's Corner"), lambda state: needs_glove(state, "Right"))
     set_rule(world.get_entrance("Main Hallway Left to Upstream"), lambda state: needs_either_glove(state) or needs_item(state, "Springheel Boots"))
@@ -86,6 +85,8 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     set_rule(world.get_location("Artisan Stone Walls - Treasure"), lambda state: needs_item(state, "Cerulean Aura"))
     set_rule(world.get_location("Avalon Calling - Treasure"), lambda state: right_or_jump_and_left(state))
     set_rule(world.get_location("Bat Cave - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Left"))
+    if world.options.logic_difficulty > 0:
+        set_rule(world.get_location("Bat Cave - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_either_glove(state))
     set_rule(world.get_location("Contrived Lock/Key Mechanisms - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))
     set_rule(world.get_location("Don't Be Hasty - Top Treasure"), lambda state: needs_glove(state, "Right"))
     set_rule(world.get_location("Forgotten Tunnels - Left Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Left"))

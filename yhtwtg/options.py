@@ -3,21 +3,21 @@ from Options import PerGameCommonOptions, Range, Toggle, DeathLink, Choice, Opti
 
 class RoomSanity(Toggle):
     """
-    Make each room a location.
+    Turn each room entry into a location. This adds 131 checks.
     """
     display_name = "Roomsanity"
     default = False
 
 class BellSanity(Toggle):
     """
-    Make each checkpoint bell a location.
+    Turn each checkpoint bell a location. This adds 66 checks.
     """
     display_name = "Bellsanity"
     default = False
 
 class DeathLinkAmnesty(Range):
     """
-    Amount of deaths before sending a DeathLink.
+    Amount of deaths you can have before sending a DeathLink.
     """
     display_name = "DeathLink Amnesty"
     default = 25
@@ -27,12 +27,12 @@ class DeathLinkAmnesty(Range):
 class DeathLinkBehavior(Choice):
     """
     What will happen when recieving a DeathLink.
-    Die just kills you.
+    Checkpoint warps you to the last checkpoint you touched.
     Reset warps you to the starting room.
     """
     display_name = "DeathLink Behavior"
     default = 0
-    option_die = 0
+    option_checkpoint = 0
     option_reset = 1
 
 class TrapPercentage(Range):
@@ -174,17 +174,17 @@ class PasswordRandomization(Choice):
 
 class LocalNothingPercentage(Range):
     """
-    Percentage of "Nothing" items that are placed locally. 
+    Percentage of "Nothing" items that are placed locally. This world has a LOT of them, especially if you enable any extra checks.
     """
     display_name = "Local Nothing Percentage"
-    default = 50
-    range_start = 0
+    default = 75
+    range_start = 50
     range_end = 90
 
 class ShuffleCatDLC(Toggle):
     """
     Shuffles an item in the pool that turns the player into a cat for 9 lives.
-    These lives do not count towards DeathLink and you are protected from its effects.
+    These lives do not count towards DeathLink and you are protected from its effects while you are a cat.
     """
     display_name = "Shuffle Cat DLC"
     default = True
@@ -199,20 +199,24 @@ class ShuffleCatDLC(Toggle):
 
 class ResetTimer(Range):
     """
-    While connected to the client, crouching for a set amount of time will warp you to the start (barring certain conditions)
-    The value you give will be divided by 10. For example 50 becomes 5 seconds.
+    While connected to the client, staying crouched for the configured duration will warp you back to the start. 
+    If a secret room trap has been triggered, this feature is disabled.
+    The entered value is divided by 10. For example, 50 equals 5 seconds.
     """
     display_name = "Warp to Start Time"
-    default = 50
+    default = 25
     range_start = 10
     range_end = 100
 
-class DisplayPasswordLetters(Toggle):
+class AutoSolvePassword(Toggle):
     """
-    Enables the password display in the client.
+    If password randomization is enabled, the password tab will automatically show the password under these conditions:
+    Both the Magic Word and Magic Symbol are revealed.
+    You received all letters required to input your password.
     """
-    display_name = "Display Password Letters"
-    default = True
+    display_name = "Automatically Solve Password"
+    default = False
+
 
 option_groups = [
     OptionGroup("Extra Locations", [RoomSanity, BellSanity]),
@@ -220,7 +224,7 @@ option_groups = [
     OptionGroup("Traps", [TrapPercentage, LoseTheGameWeight, StopJumpingTrapWeight, StopJumpingTrapLength, SecretRoomsTrapWeight, FreezeTrapWeight, FreezeTrapLength, FastTrapWeight,FastTrapLength]),
     OptionGroup("Randomizer Changes", [SplitSpiderGloves, RequireUnlockTeleporters, LogicDifficullty, IncludeExtraRoadblocks, PasswordRandomization]),
     OptionGroup("Filler Options", [LocalNothingPercentage, ShuffleCatDLC]),
-    OptionGroup("QOL", [ResetTimer, DisplayPasswordLetters])
+    OptionGroup("QOL", [ResetTimer, AutoSolvePassword])
 ]
 
 @dataclass
@@ -246,11 +250,10 @@ class WinTheGameOptions(PerGameCommonOptions):
     require_unlock_teleporters: RequireUnlockTeleporters
     logic_difficulty: LogicDifficullty
     include_extra_roadblocks: IncludeExtraRoadblocks
-    # TODO uncomment out for password rando
-    # password_randomization: PasswordRandomization
+    password_randomization: PasswordRandomization
 
     local_nothing_percentage: LocalNothingPercentage
     shuffle_cat_dlc: ShuffleCatDLC
 
     reset_timer: ResetTimer
-    # display_password_letters: DisplayPasswordLetters
+    auto_solve_password: AutoSolvePassword

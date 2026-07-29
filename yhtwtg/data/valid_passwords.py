@@ -13,6 +13,7 @@ VALID_PASSWORDS = [
 
     "CABIN",
     "COURT",
+    "CLOWN",
     "CRAZY",
     "CRIME",
 
@@ -61,6 +62,7 @@ VALID_PASSWORDS = [
     "LAYER",
     "LEMON",
     "LIGHT",
+    "LOGIC",
     "LOVER",
     "LUCKY",
 
@@ -71,7 +73,7 @@ VALID_PASSWORDS = [
 
     "NACHO",
     "NAKED",
-    "NEXUS"
+    "NEXUS",
     "NIGHT",
     "NORTH",
 
@@ -99,7 +101,7 @@ VALID_PASSWORDS = [
     "SAUCE",
     "SHIRT",
     "STORY",
-    "SPEAR", # im a fucking narcissist pt 2
+    "SPEAR",
     "SUPER", # lol lmao imagine the nerd that rolls the vanilla password
 
     "TABLE",
@@ -122,7 +124,7 @@ VALID_PASSWORDS = [
     "WORLD",
     "WRONG",
 
-    "YEARN"
+    "YEARN",
     "YIELD",
     "YOUNG",
     "YOURS"

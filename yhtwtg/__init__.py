@@ -86,13 +86,12 @@ class WinTheGameWorld(World):
             "logic_difficulty": self.options.logic_difficulty.value,
             "include_extra_roadblocks": self.options.include_extra_roadblocks.value,
             "reset_timer": self.options.reset_timer.value,
-            #TODO uncomment out for password rando
-            # "password_randomization": self.options.password_randomization.value,
-            # "display_password_letters": self.options.display_password_letters.value,
+            "auto_solve_password": self.options.auto_solve_password.value,
+            "password_randomization": self.options.password_randomization.value,
 
-            # "password": self.password,
-            # "magic_word": self.magic_word,
-            # "magic_symbol": self.magic_symbol
+            "password": self.password,
+            "magic_word": self.magic_word,
+            "magic_symbol": self.magic_symbol
         }
 
     @staticmethod
@@ -109,5 +108,4 @@ class WinTheGameWorld(World):
             self.options.require_unlock_teleporters.value = self.passthrough["require_unlock_teleporters"]
             self.options.logic_difficulty.value = self.passthrough["logic_difficulty"]
             self.options.include_extra_roadblocks.value = self.passthrough["include_extra_roadblocks"]
-            # TODO uncomment out for password rando
-            # self.options.password_randomization.value = self.passthrough["password_randomization"]
+            self.options.password_randomization.value = self.passthrough["password_randomization"]

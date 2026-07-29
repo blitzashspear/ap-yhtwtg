@@ -1,31 +1,26 @@
-# remaining TODO
-
-# APWorld changes - v1.0.0
-# Password Rando:
-#   Display password letters, magic word and symbol when obtained in client.
-
-# APWorld future ideas
-# Switch from pymem to PyMemoryEditor for linux support
+# APWorld ideas im not doing because im tired boss
+# YOLO Trap, next death warps you to the starting room.
+# Switch from pymem to PyMemoryEditor for linux support.
 # Make percentage counter in the bottom right more accurate.
 # New goal condition - Percentage Hunt. percentage bundles have been scattered across the world. Find them all. Bundles can range from 2% all the way to 10%.
 # Play the power up noise when finding a progression item.
 # Traplink based on items from other games.
+# Whatever the fuck Group DeathLink is.
+# Switch to Rule Builder.
+# Extra Spicy map.
+# YAML option for custom password.
 
 import asyncio
 from typing import TYPE_CHECKING
 
 tracker_loaded = False
 from CommonClient import gui_enabled, logger
-from sys import platform
 if TYPE_CHECKING:
     from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
 else:
     try:
-        if platform != 'darwin':
-            from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
-            tracker_loaded = True
-        else:
-            raise ModuleNotFoundError
+        from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
+        tracker_loaded = True        
     except ModuleNotFoundError:
         from CommonClient import CommonContext as SuperContext
 
@@ -36,15 +31,23 @@ from .data.location_ids import LOCATION_IDS
 from .data.room_coordinates import COORDS_TO_ROOM_NAME
 from .data.bell_coordinates import COORDS_TO_BELL_NAME
 from .data.client_constants import *
+import os
 import re
+from kvui import GameManager # import required even if unused
+from kivy.uix.label import Label
+from kivy.uix.layout import Layout
+from kivy.uix.widget import Widget
+from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import Image # why the fuck doesnt vscode recongize this import
 
 class WinTheGameContext(SuperContext):
     game = "You Have to Win the Game"
     tags = {"AP"}
     items_handling = 0b111
     death_link_active = False
-    death_link_amnesty = None
-    death_link_behavior = None
+    death_link_amnesty = 25
+    death_link_behavior = "checkpoint"
     last_death_link: int = None
     WinTheGame: Pymem = None
     unlocked_letters: list[str] = []
@@ -56,7 +59,10 @@ class WinTheGameContext(SuperContext):
     password_rando = False
     password = "SUPER"
     magic_word = "VXSHU"
+    show_magic_word = False
     magic_symbol = 3
+    show_magic_symbol = False
+    auto_solve_password = False
     unlocked_quarry = True
     unlocked_mineshaft = True
     unlocked_castle = True
@@ -73,10 +79,14 @@ class WinTheGameContext(SuperContext):
     cached_last_room = (None, None)
     cached_last_bell: str = None
     resynced = False
+    items_given = 0
 
-    reset_timer = 1000000
+    reset_timer = 25
     display_password_letters = True
     connected = False
+
+    finished_game = False
+    informed_server = False
 
     def __init__(self, server_address=None, password=None):
         super().__init__(server_address, password)
@@ -140,10 +150,8 @@ class WinTheGameContext(SuperContext):
         super().on_package(cmd, args) # for UT
         if cmd in {"Connected"}:
             self.connected = True
-            if args["slot_data"]["room_sanity"]:
-                self.room_sanity = True
-            if args["slot_data"]["bell_sanity"]:
-                self.bell_sanity = True
+            self.room_sanity = args["slot_data"]["room_sanity"]
+            self.bell_sanity = args["slot_data"]["bell_sanity"]
 
             if args["slot_data"]["death_link"]:
                 self.death_link_active = True
@@ -154,10 +162,9 @@ class WinTheGameContext(SuperContext):
             self.freeze_trap_length = args["slot_data"]["freeze_trap_length"]
             self.fast_trap_length = args["slot_data"]["fast_trap_length"]
 
-            if args["slot_data"]["split_spider_gloves"]:
-                self.split_spider_gloves = True
-            if args["slot_data"]["require_unlock_teleporters"]:
-                self.teleporters_locked = True
+            self.split_spider_gloves = args["slot_data"]["split_spider_gloves"]
+            self.teleporters_locked = args["slot_data"]["require_unlock_teleporters"]
+
             if "Quarry" in args["slot_data"]["include_extra_roadblocks"]:
                 self.unlocked_quarry = False
             if "Mineshaft" in args["slot_data"]["include_extra_roadblocks"]:
@@ -168,15 +175,20 @@ class WinTheGameContext(SuperContext):
                 self.unlocked_graveyard = False
 
             self.reset_timer = args["slot_data"]["reset_timer"]
-            #TODO uncomment out for password rando
-            # if args["slot_data"]["password_randomization"]:
-            #     self.password_rando = True
-            #     self.password = args["slot_data"]["password"]
-            #     self.magic_word = args["slot_data"]["magic_word"]
-            #     self.magic_symbol = args["slot_data"]["magic_symbol"]
-            # if args["slot_data"]["display_password_letters"]:
-            #     self.display_password_letters = True
 
+            if args["slot_data"]["password_randomization"]:
+                self.password_rando = True
+                self.password = args["slot_data"]["password"]
+                self.magic_word = args["slot_data"]["magic_word"]
+                self.magic_symbol = args["slot_data"]["magic_symbol"]
+                self.auto_solve_password = args["slot_data"]["auto_solve_password"]
+
+            if not self.password_rando:
+                self.show_magic_word = True
+                self.show_magic_symbol = True
+
+            self.update_password_tab()
+                    
     # Receiving DeathLinks
     def on_deathlink(self, data):
         if not self.is_cat:
@@ -214,8 +226,8 @@ class WinTheGameContext(SuperContext):
 
         elif "Letter" in item and item[-1] not in self.unlocked_letters:
             self.unlocked_letters += item[-1]
+            self.update_password_tab()
 
-        # If resyncing is just me going through all of the items again I don't want to trigger traps.
         elif item == "Lose the Game" and self.resynced:
             self.teleport_player_to_room(-3, 0, 76.0, 140.0) # You Have to Start the Game
         elif item == "Stop Jumping Trap" and self.resynced:
@@ -241,13 +253,14 @@ class WinTheGameContext(SuperContext):
         elif item == "Unlock Graveyard":
             self.unlocked_graveyard = True
 
-        # TODO put both of these in the password display in the client
         elif item == "Reveal Magic Word":
-            logger.info(f"The Magic Word is: {self.magic_word}")
+            self.show_magic_word = True
+            self.update_password_tab()
         elif item == "Reveal Magic Symbol":
-            logger.info(f"The Magic Symbol is: {self.magic_symbol}")
+            self.show_magic_symbol = True
+            self.update_password_tab()
 
-        elif item == "Playable Cat DLC*":
+        elif item == "Playable Cat DLC*" and self.resynced:
             asyncio.create_task(self.become_cat())
 
         elif item == "Win the Game":
@@ -286,11 +299,244 @@ class WinTheGameContext(SuperContext):
         self.WinTheGame.write_float(self.respawn_player_x_address, player_x)
         self.WinTheGame.write_float(self.respawn_player_y_address, player_y)
 
+    def get_latest_checkpoint(self) -> tuple[int, int, float, float]:
+        return (self.WinTheGame.read_int(self.respawn_room_x_address), self.WinTheGame.read_int(self.respawn_room_y_address), 
+                self.WinTheGame.read_float(self.respawn_player_x_address), self.WinTheGame.read_float(self.respawn_player_y_address))
+
+    def update_password_tab(self) -> None:
+        if getattr(self, "ui", None) is not None:
+            self.ui.update_password_tab()
+
+    # Yeah, I'll admit it. I vibecoded the shit out everything kivy related.
+    # None of the assets are generative AI, those are from the game itself.
     def make_gui(self):
-        ui = super().make_gui()
-        ui.base_title = "You Have to Win the Game Client"
-        return ui
+        class NotConnectedLayout(BoxLayout):
+            ctx: WinTheGameContext
+
+            def __init__(self, ctx: WinTheGameContext) -> None:
+                super().__init__(orientation="horizontal", size_hint_y=0.12)
+                self.ctx = ctx
+                self.add_widget(Label(text="Not connected to Archipelago.", font_size="30dp"))
+
+            def show(self):
+                self.opacity = 1.0
+                self.size_hint_y = 0.12
+                self.disabled = False
+
+            def hide(self):
+                self.opacity = 0.0
+                self.size_hint_y = None
+                self.height = "0dp"
+                self.disabled = True
+
+        class ConnectedLayout(BoxLayout):
+            ctx: WinTheGameContext
+
+            def __init__(self, ctx: WinTheGameContext) -> None:
+                self.ctx = ctx
+                super().__init__(orientation="vertical", size_hint_y=0.12)
+                self.letters_label = Label(
+                    text="Unlocked Letters:",
+                    font_size="30dp",
+                    halign="center",
+                    valign="middle",
+                    text_size=(None, None),
+                    markup=True
+                )
+                self.add_widget(self.letters_label)
+
+                self.magic_row = BoxLayout(
+                    orientation="horizontal",
+                    size_hint=(None, None),
+                    size=("340dp", "96dp"),
+                    spacing="15dp",
+                    pos_hint={"center_x": 0.5}
+                )
+
+                self.magic_word_box = AnchorLayout(
+                    size_hint=(None, None),
+                    size=("140dp", "96dp"),
+                    anchor_x="center",
+                    anchor_y="center"
+                )
+                self.magic_word_content = BoxLayout(
+                    orientation="vertical",
+                    size_hint=(None, None),
+                    size=("140dp", "48dp"),
+                    spacing="6dp"
+                )
+                self.magic_word_label = Label(
+                    font_size="30dp",
+                    color=(0.925, 0.384, 0.969, 1),
+                    size_hint=(1, None),
+                    height="25dp",
+                    halign="center",
+                    valign="middle"
+                )
+                self.magic_word_content.add_widget(self.magic_word_label)
+                self.magic_word_image = Image(
+                    source=os.path.join(os.path.dirname(__file__), "assets", "word_line.png"),
+                    size_hint=(1, None),
+                    height="25dp",
+                    allow_stretch=True,
+                    keep_ratio=True,
+                    opacity=0
+                )
+                self.magic_word_content.add_widget(self.magic_word_image)
+                self.magic_word_box.add_widget(self.magic_word_content)
+
+                self.magic_symbol_box = AnchorLayout(
+                    size_hint=(None, None),
+                    size=("160dp", "96dp"),
+                    anchor_x="center",
+                    anchor_y="center"
+                )
+                self.magic_symbol_content = BoxLayout(
+                    orientation="horizontal",
+                    size_hint=(None, None),
+                    size=("144dp", "48dp"),
+                    spacing="0dp"
+                )
+                self.magic_symbol_left_image = Image(
+                    source=os.path.join(os.path.dirname(__file__), "assets", "magic_symbol_left.png"),
+                    size_hint=(None, None),
+                    size=("48dp", "48dp"),
+                    allow_stretch=True,
+                    keep_ratio=True,
+                    opacity=0
+                )
+                self.magic_symbol_label = Label(
+                    font_size="36dp",
+                    color=(0.925, 0.384, 0.969, 1),
+                    size_hint=(None, None),
+                    size=("36dp", "40dp"),
+                    halign="center",
+                    valign="middle",
+                    text=""
+                )
+                self.magic_symbol_label.bind(size=self.magic_symbol_label.setter('text_size'))
+                self.magic_symbol_right_image = Image(
+                    source=os.path.join(os.path.dirname(__file__), "assets", "magic_symbol_right.png"),
+                    size_hint=(None, None),
+                    size=("48dp", "48dp"),
+                    allow_stretch=True,
+                    keep_ratio=True,
+                    opacity=0
+                )
+                self.magic_symbol_content.add_widget(self.magic_symbol_left_image)
+                self.magic_symbol_content.add_widget(self.magic_symbol_label)
+                self.magic_symbol_content.add_widget(self.magic_symbol_right_image)
+                self.magic_symbol_box.add_widget(self.magic_symbol_content)
+
+                self.magic_row.add_widget(self.magic_word_box)
+                self.magic_row.add_widget(self.magic_symbol_box)
+                self.add_widget(self.magic_row)
+
+                self.auto_password_label = Label(
+                    font_size="30dp",
+                    halign="center",
+                    valign="middle",
+                    text_size=(None, None)
+                )
+                self.add_widget(self.auto_password_label)
+
+            def show(self):
+                self.opacity = 1.0
+                self.size_hint_y = 0.12
+                self.disabled = False
+
+            def hide(self):
+                self.opacity = 0.0
+                self.size_hint_y = None
+                self.height = "0dp"
+                self.disabled = True
+
+            def update(self):
+                unlocked_letters_text = "Unlocked Letters:\n"
+                for letter in sorted(self.ctx.unlocked_letters):
+                    color = "ffffff"
+                    if letter in self.ctx.password:
+                        color = "ec62f7"
+                    unlocked_letters_text += f"[color={color}]{letter} [/color]"
+                self.letters_label.text = unlocked_letters_text
+                if self.ctx.show_magic_word:
+                    self.magic_word_label.text = self.ctx.magic_word
+                    self.magic_word_image.opacity = 1
+                if self.ctx.show_magic_symbol:
+                    self.magic_symbol_left_image.opacity = 1
+                    self.magic_symbol_right_image.opacity = 1
+                    self.magic_symbol_label.text = str(abs(self.ctx.magic_symbol))
+                    if self.ctx.magic_symbol < 0:
+                        self.magic_symbol_left_image.source = os.path.join(os.path.dirname(__file__), "assets", "magic_symbol_left_alt.png")
+                        self.magic_symbol_right_image.source = os.path.join(os.path.dirname(__file__), "assets", "magic_symbol_right_alt.png")
+
+                password_check = True
+                for letter in self.ctx.password:
+                    if letter not in self.ctx.unlocked_letters:
+                        password_check = False
+                        break
+                if self.ctx.show_magic_word and self.ctx.show_magic_symbol and password_check and self.ctx.auto_solve_password:
+                    self.auto_password_label.text = f"Password:\n{self.ctx.password}"
+
+        class PasswordTabLayout(BoxLayout):
+            ctx: WinTheGameContext
+            layout_not_connected: NotConnectedLayout
+
+            def __init__(self, ctx: WinTheGameContext) -> None:
+                super().__init__(orientation="vertical", padding="8dp")
+
+                self.ctx = ctx
+                self.layout_not_connected = NotConnectedLayout(self.ctx)
+                self.add_widget(self.layout_not_connected)
+                self.layout_connected = ConnectedLayout(self.ctx)
+                self.add_widget(self.layout_connected)
+                self.layout_connected.hide()
+
+            def update(self) -> None:
+                if self.ctx.connected:
+                    self.layout_connected.show()
+                    self.layout_not_connected.hide()
+                    self.layout_connected.update()
+                else:
+                    self.layout_connected.hide()
+                    self.layout_not_connected.show()
+
+        ui = super().make_gui() # For UT
+        class WinTheGameGameManager(ui):
+            ctx: WinTheGameContext
+            base_title = "You Have to Win the Game Client"
+            password_layout: PasswordTabLayout
+            password_tab: Widget
+
+            def build(self) -> Layout:
+                container = super().build()
+                self.password_layout = PasswordTabLayout(self.ctx)
+                self.password_tab = self.add_client_tab("Password", self.password_layout)
+                return container
             
+            def update_password_tab(self) -> None:
+                self.password_layout.update()
+            
+        return WinTheGameGameManager
+    # AI slop over. Back to your regularly scheduled human slop.
+
+    async def disconnect(self):
+        try:
+            if self.split_spider_gloves:
+                self.WinTheGame.write_uchar(self.on_wall_address, 0)
+                self.WinTheGame.write_uchar(self.can_wall_jump_address, 0)
+            if self.is_cat:
+                self.remove_cat_status()
+        except:
+            pass
+        await super().disconnect()
+
+    def remove_cat_status(self):
+        self.WinTheGame.write_uchar(self.player_is_cat_address, 0)
+        self.WinTheGame.write_int(self.deaths_address, self.cat_stored_deaths)
+        self.is_cat = False
+
+
 async def watch_game(ctx: WinTheGameContext):
     while not ctx.exit_event.is_set():
         if ctx.WinTheGame == None:
@@ -305,7 +551,11 @@ async def watch_game(ctx: WinTheGameContext):
             if not ctx.shown_campaign_message:
                 logger.info("Please use the Archipelago campaign.")
                 ctx.shown_campaign_message = True
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
+            continue
+
+        if not ctx.connected:
+            await asyncio.sleep(1)
             continue
 
         current_room = ctx.get_current_room_coords()
@@ -313,60 +563,58 @@ async def watch_game(ctx: WinTheGameContext):
 
         deaths = ctx.WinTheGame.read_int(ctx.deaths_address)
         if ctx.is_cat and deaths == 9:
-            ctx.WinTheGame.write_uchar(ctx.player_is_cat_address, 0)
-            ctx.WinTheGame.write_int(ctx.deaths_address, ctx.cat_stored_deaths)
-            ctx.is_cat = False
-        # Sending DeathLinks
+            ctx.remove_cat_status()
         elif ctx.death_link_active:
             if "DeathLink" not in ctx.tags:
                 await ctx.update_death_link(True)
             if deaths > 0 and deaths % ctx.death_link_amnesty == 0 and deaths != ctx.last_death_link:
-                nth = lambda deaths: f"{deaths}{'th' if 10 <= deaths % 100 <= 20 else {1:'st', 2:'nd', 3:'rd'}.get(deaths % 10, 'th')}"
+                nth = lambda n: f"{n}{'th' if 10 <= n % 100 <= 20 else {1:'st', 2:'nd', 3:'rd'}.get(n % 10, 'th')}"
                 await ctx.send_death(f"{ctx.player_names[ctx.slot]} died for the {nth(deaths)} time while traversing {COORDS_TO_ROOM_NAME[current_room][:-13]}.")
                 ctx.last_death_link = deaths
 
-        if ctx.connected:
-            locations = []
-            treasures_found = ctx.WinTheGame.read_int(ctx.treasures_found_address)
-            if ctx.cached_treasure_found != treasures_found:
-                ctx.cached_treasure_found = treasures_found
-                # The address of the vector is dynamic.
-                treasure_vector = ctx.WinTheGame.read_int(ctx.treasure_vector_address)
-                # I would like treasures to send out missing checks on disconnect/reconnect, since they disappear in the world after collection.
-                for i in range(treasures_found):
-                    locations.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
-            if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
-                locations.append(99)
-            # These next check types are checked once unlike the treasures. 
-            # This means that any rooms explored or bells rung before connecting to Archipelago wont be saved.
-            # Anything in the secret rooms will result in a KeyError.
-            try:
-                if ctx.room_sanity and ctx.cached_last_room != current_room: 
-                    locations.append(LOCATION_IDS[COORDS_TO_ROOM_NAME[current_room]])
-                    ctx.cached_last_room = current_room
-                if ctx.bell_sanity:
-                    latest_checkpoint = (ctx.WinTheGame.read_float(ctx.respawn_player_x_address), ctx.WinTheGame.read_float(ctx.respawn_player_y_address), 
-                                        (ctx.WinTheGame.read_int(ctx.respawn_room_x_address), ctx.WinTheGame.read_int(ctx.respawn_room_y_address)))
-                    bell = COORDS_TO_BELL_NAME[latest_checkpoint]
-                    if ctx.cached_last_bell != bell:
-                        ctx.cached_last_bell = bell
-                        locations.append(LOCATION_IDS[bell])
-            except KeyError:
-                pass
-            if len(locations) != 0:
-                await ctx.check_locations(locations)
+        locations = []
+        treasures_found = ctx.WinTheGame.read_int(ctx.treasures_found_address)
+        if ctx.cached_treasure_found != treasures_found:
+            ctx.cached_treasure_found = treasures_found
+            # The address of the vector is dynamic.
+            treasure_vector = ctx.WinTheGame.read_int(ctx.treasure_vector_address)
+            # I would like treasures to send out missing checks on disconnect/reconnect, since they disappear in the world after collection.
+            for i in range(treasures_found):
+                locations.append(ctx.WinTheGame.read_int(treasure_vector + 4 * i) + 1)
+        if ctx.WinTheGame.read_int(ctx.times_won_address) != 0: #GOAL
+            locations.append(99)
+        # These next check types are checked once unlike the treasures. 
+        # This means that any rooms explored or bells rung before connecting to Archipelago wont be saved.
+        try:
+            if ctx.room_sanity and ctx.cached_last_room != current_room: 
+                locations.append(LOCATION_IDS[COORDS_TO_ROOM_NAME[current_room]])
+                ctx.cached_last_room = current_room
+            if ctx.bell_sanity:
+                latest_checkpoint = ctx.get_latest_checkpoint()
+                bell = COORDS_TO_BELL_NAME[latest_checkpoint]
+                if ctx.cached_last_bell != bell:
+                    ctx.cached_last_bell = bell
+                    locations.append(LOCATION_IDS[bell])
+        except KeyError: # Cases are secret rooms, starting the game.
+            pass
+        if len(locations) != 0:
+            await ctx.check_locations(locations)
 
-        if not ctx.resynced: # Resyncing items, but not traps upon client closing and re-opening.
-            ctx.WinTheGame.write_int(ctx.times_lost_address, 0)
-        times_lost: int = ctx.WinTheGame.read_int(ctx.times_lost_address) # had to specify the type to keep pylance working. ugly af
+        times_lost: int = ctx.WinTheGame.read_int(ctx.times_lost_address)
         amount_of_received_items = len(ctx.items_received)
-        if times_lost != amount_of_received_items:
-            while times_lost != amount_of_received_items:
-                ctx.give_item(ID_TO_ITEM[ctx.items_received[times_lost].item])
-                times_lost += 1
-            ctx.WinTheGame.write_int(ctx.times_lost_address, times_lost)
+        if amount_of_received_items == 0:
+            ctx.resynced = True
+        else:
             if not ctx.resynced:
-                ctx.resynced = True
+                amount_of_received_items = times_lost
+                times_lost = 0
+            if times_lost < amount_of_received_items:
+                while times_lost < amount_of_received_items:
+                    ctx.give_item(ID_TO_ITEM[ctx.items_received[times_lost].item])
+                    times_lost += 1
+                ctx.WinTheGame.write_int(ctx.times_lost_address, times_lost)
+                if not ctx.resynced:
+                    ctx.resynced = True
 
         if ctx.split_spider_gloves:
             left_check = ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1
@@ -395,8 +643,9 @@ async def watch_game(ctx: WinTheGameContext):
             if ctx.WinTheGame.read_float(ctx.player_y_address) > 42.0:
                 ctx.WinTheGame.write_float(ctx.player_y_address, 41.8)
         elif (current_room == (-5, 5) or current_room == (-4, 5)) and not ctx.unlocked_mineshaft: # Mine Shaft or Green Man
-            if ctx.WinTheGame.read_float(ctx.player_y_address) > 178.0:
-                ctx.WinTheGame.write_float(ctx.player_y_address, 145.0)
+            if ctx.WinTheGame.read_float(ctx.player_y_address) > 170.0 and ctx.WinTheGame.read_float(ctx.player_x_address) < 188.0:
+                ctx.WinTheGame.write_float(ctx.player_x_address, 20.0)
+                ctx.WinTheGame.write_float(ctx.player_y_address, 110.0)
         elif current_room == (4, 1) and not ctx.unlocked_castle: #Eden Maw
             if ctx.WinTheGame.read_float(ctx.player_x_address) > 300.0:
                 ctx.WinTheGame.write_float(ctx.player_x_address, 300.0)
@@ -418,15 +667,11 @@ async def watch_game(ctx: WinTheGameContext):
             if letter_mismatch:
                 # Placing the player directly on the portal coordinates actually doesn't work. Need to place slightly higher.
                 ctx.teleport_player(272.0, 110.0)
-        # TODO uncomment out for password rando
-        # elif current_room == (1, -4): # Warp Right
-        #     logger.info("found room")
-        #     room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 50))
-        #     logger.info(f"found room name: {room_name}")
-        #     logger.info(f"password: {ctx.password}")
-        #     if room_name == ctx.password:
-        #         await asyncio.sleep(1)
-        #         ctx.teleport_player_to_room(-1, -2, 160.0, 80.0) # Open Sesame
+        elif current_room == (1, -4): # Warp Right
+            room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 50))
+            if room_name == ctx.password:
+                await asyncio.sleep(1)
+                ctx.teleport_player_to_room(-1, -2, 160.0, 80.0) # Open Sesame
 
         # Player anti-softlock.
         if ctx.WinTheGame.read_uchar(ctx.player_crouching_address) and not in_secret_rooms:
@@ -436,8 +681,10 @@ async def watch_game(ctx: WinTheGameContext):
         if crouch_time >= ctx.reset_timer:
             ctx.teleport_player_to_room(-3, 0, 76.0, 140.0) # You Have to Start the Game
 
-        if ctx.finished_game:
+        if ctx.finished_game and not ctx.informed_server:
             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
+            ctx.informed_server = True
+
         await asyncio.sleep(0.1)
 
 def launch():
