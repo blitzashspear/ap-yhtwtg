@@ -76,9 +76,8 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     if "Mineshaft" in world.options.include_extra_roadblocks:
         set_rule(world.get_entrance("Underground to Mineshaft"), lambda state: state.has("Unlock Mineshaft", world.player))
 
-    # TODO uncomment out for password rando
-    # if world.options.password_randomization: # Not enforced but will be required logically.
-    #     add_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Reveal Magic Word", "Reveal Magic Symbol"), world.player))
+    if world.options.password_randomization: # Not enforced but will be required logically.
+        add_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Reveal Magic Word", "Reveal Magic Symbol"), world.player))
 
     # TREASURE RULES
     set_rule(world.get_location("Arcane Vocabulary - Top Treasure"), lambda state: needs_item(state, "Springheel Boots"))
