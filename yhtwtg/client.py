@@ -178,7 +178,7 @@ class WinTheGameContext(SuperContext):
 
             if args["slot_data"]["password_randomization"]:
                 self.password_rando = True
-                self.solved_password = args["slot_data"]["password"]
+                self.solved_password = args["slot_data"]["solved_password"]
                 self.magic_word = args["slot_data"]["magic_word"]
                 self.magic_symbol = args["slot_data"]["magic_symbol"]
                 self.auto_solve_password = args["slot_data"]["auto_solve_password"]

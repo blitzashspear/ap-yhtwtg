@@ -30,29 +30,30 @@ def create_all_items(world: WinTheGameWorld) -> None:
     else:
         itempool.append(world.create_item("Spider Gloves"))
 
-    password = "SUPER"
+    # This breaks UT. Oh well. Thats what the password tab on the client is for I guess.
+    solved_password = "SUPER"
     if world.options.password_randomization > 0:
         if world.options.password_randomization == 1: # Words
-            password = world.random.choice(VALID_PASSWORDS)
+            solved_password = world.random.choice(VALID_PASSWORDS)
         elif world.options.password_randomization == 2: # Any
-            password = world.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
+            solved_password = world.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
         itempool.append(world.create_item("Reveal Magic Word"))
         itempool.append(world.create_item("Reveal Magic Symbol"))
         magic_symbol = world.random.choice([i for i in range(-9, 10) if i != 0]) # -9 to -1 and 1 to 9
         magic_word = ""
-        for letter in password:
+        for letter in solved_password:
             ascii = ord(letter) + magic_symbol
             if ascii > ord("Z"):
                 ascii -= 26
             elif ascii < ord("A"):
                 ascii += 26
             magic_word += chr(ascii)
-        world.password = password
+        world.solved_password = solved_password
         world.magic_word = magic_word
         world.magic_symbol = magic_symbol
 
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-        if letter in password:
+        if letter in solved_password:
             itempool.append(create_item_with_custom_classification(world, f"Letter {letter}", ItemClassification.progression_deprioritized_skip_balancing))
         else:
             itempool.append(world.create_item(f"Letter {letter}"))

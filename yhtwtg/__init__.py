@@ -51,7 +51,7 @@ class WinTheGameWorld(World):
     item_name_to_id = ITEM_IDS
     origin_region_name = "Starting Hallway"
     ut_can_gen_without_yaml = True
-    password = "SUPER"
+    solved_password = "SUPER"
     magic_word = "VXSHU"
     magic_symbol = 3
     
@@ -89,7 +89,7 @@ class WinTheGameWorld(World):
             "auto_solve_password": self.options.auto_solve_password.value,
             "password_randomization": self.options.password_randomization.value,
 
-            "password": self.password,
+            "solved_password": self.solved_password,
             "magic_word": self.magic_word,
             "magic_symbol": self.magic_symbol
         }

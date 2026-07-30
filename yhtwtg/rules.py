@@ -17,7 +17,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     def right_or_jump_and_left(state: CollectionState):
         return needs_glove(state, "Right") or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player)
     def has_password(state: CollectionState):
-        return state.has_all((f"Letter {letter}" for letter in world.password), world.player)
+        return state.has_all((f"Letter {letter}" for letter in world.solved_password), world.player)
     
     # REGION / ROOM RULES
     set_rule(world.get_entrance("Main Hallway Left to Hydra's Corner"), lambda state: needs_glove(state, "Right"))
