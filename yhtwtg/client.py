@@ -57,7 +57,7 @@ class WinTheGameContext(SuperContext):
     has_right_glove = False
     teleporters_locked = False
     password_rando = False
-    password = "SUPER"
+    solved_password = "SUPER"
     magic_word = "VXSHU"
     show_magic_word = False
     magic_symbol = 3
@@ -178,7 +178,7 @@ class WinTheGameContext(SuperContext):
 
             if args["slot_data"]["password_randomization"]:
                 self.password_rando = True
-                self.password = args["slot_data"]["password"]
+                self.solved_password = args["slot_data"]["password"]
                 self.magic_word = args["slot_data"]["magic_word"]
                 self.magic_symbol = args["slot_data"]["magic_symbol"]
                 self.auto_solve_password = args["slot_data"]["auto_solve_password"]
@@ -455,7 +455,7 @@ class WinTheGameContext(SuperContext):
                 unlocked_letters_text = "Unlocked Letters:\n"
                 for letter in sorted(self.ctx.unlocked_letters):
                     color = "ffffff"
-                    if letter in self.ctx.password:
+                    if letter in self.ctx.solved_password:
                         color = "ec62f7"
                     unlocked_letters_text += f"[color={color}]{letter} [/color]"
                 self.letters_label.text = unlocked_letters_text
@@ -471,12 +471,12 @@ class WinTheGameContext(SuperContext):
                         self.magic_symbol_right_image.source = os.path.join(os.path.dirname(__file__), "assets", "magic_symbol_right_alt.png")
 
                 password_check = True
-                for letter in self.ctx.password:
+                for letter in self.ctx.solved_password:
                     if letter not in self.ctx.unlocked_letters:
                         password_check = False
                         break
                 if self.ctx.show_magic_word and self.ctx.show_magic_symbol and password_check and self.ctx.auto_solve_password:
-                    self.auto_password_label.text = f"Password:\n{self.ctx.password}"
+                    self.auto_password_label.text = f"Password:\n{self.ctx.solved_password}"
 
         class PasswordTabLayout(BoxLayout):
             ctx: WinTheGameContext
@@ -667,11 +667,14 @@ async def watch_game(ctx: WinTheGameContext):
             if letter_mismatch:
                 # Placing the player directly on the portal coordinates actually doesn't work. Need to place slightly higher.
                 ctx.teleport_player(272.0, 110.0)
-        elif current_room == (1, -4): # Warp Right
+        elif current_room == (1, -4) and ctx.password_rando: # Warp Right
             room_name = re.sub(r'[^A-Z]', "", ctx.WinTheGame.read_string(ctx.room_name_address, 50))
-            if room_name == ctx.password:
-                await asyncio.sleep(1)
+            await asyncio.sleep(3)
+            if room_name == ctx.solved_password:
                 ctx.teleport_player_to_room(-1, -2, 160.0, 80.0) # Open Sesame
+            else:
+                ctx.teleport_player_to_room(-1, -3, 160.0, 80.0) # Speak Now...
+            
 
         # Player anti-softlock.
         if ctx.WinTheGame.read_uchar(ctx.player_crouching_address) and not in_secret_rooms:

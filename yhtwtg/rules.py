@@ -18,6 +18,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         return needs_glove(state, "Right") or state.has_all(("Springheel Boots", "Left Spider Glove"), world.player)
     def has_password(state: CollectionState):
         return state.has_all((f"Letter {letter}" for letter in world.password), world.player)
+    
     # REGION / ROOM RULES
     set_rule(world.get_entrance("Main Hallway Left to Hydra's Corner"), lambda state: needs_glove(state, "Right"))
     set_rule(world.get_entrance("Main Hallway Left to Upstream"), lambda state: needs_either_glove(state) or needs_item(state, "Springheel Boots"))
@@ -77,14 +78,14 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         set_rule(world.get_entrance("Underground to Mineshaft"), lambda state: state.has("Unlock Mineshaft", world.player))
 
     if world.options.password_randomization: # Not enforced but will be required logically.
-        add_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Reveal Magic Word", "Reveal Magic Symbol"), world.player))
+        add_rule(world.get_entrance("Password Puzzle to Solved Puzzle"), lambda state: state.has_all(("Reveal Magic Word", "Reveal Magic Symbol"), world.player), "and")
 
     # TREASURE RULES
     set_rule(world.get_location("Arcane Vocabulary - Top Treasure"), lambda state: needs_item(state, "Springheel Boots"))
     set_rule(world.get_location("Artisan Stone Walls - Treasure"), lambda state: needs_item(state, "Cerulean Aura"))
     set_rule(world.get_location("Avalon Calling - Treasure"), lambda state: right_or_jump_and_left(state))
     set_rule(world.get_location("Bat Cave - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Left"))
-    if world.options.logic_difficulty > 0:
+    if world.options.logic_difficulty > 0: # Harder than Normal
         set_rule(world.get_location("Bat Cave - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_either_glove(state))
     set_rule(world.get_location("Contrived Lock/Key Mechanisms - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots", "Spider Gloves", "Left Spider Glove"), world.player))
     set_rule(world.get_location("Don't Be Hasty - Top Treasure"), lambda state: needs_glove(state, "Right"))
@@ -98,9 +99,9 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     set_rule(world.get_location("Pit Stop - Treasure"), lambda state: needs_item(state, "Springheel Boots"))
     set_rule(world.get_location("Playing with Fire - Treasure"), lambda state: needs_item(state, "Springheel Boots") and needs_either_glove(state))
     set_rule(world.get_location("Prawn Shot First - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Right"))
-    if world.options.logic_difficulty > 0: #Harder than normal
+    if world.options.logic_difficulty > 0: # Harder than Normal
         add_rule(world.get_location("Prawn Shot First - Treasure"), lambda state: state.has("Left Spider Glove", world.player), "or")
-    if world.options.logic_difficulty == 0: #Only normal.
+    if world.options.logic_difficulty == 0: # Only normal.
         set_rule(world.get_location("Remnants of a Past Unknown - Treasure"), lambda state: state.has_any(("Crimson Aura", "Springheel Boots"), world.player))
     set_rule(world.get_location("Secret Passage - Treasure"), lambda state: needs_item(state, "Springheel Boots") or needs_glove(state, "Right"))
     set_rule(world.get_location("Shelter from the Storm - Treasure"), lambda state: state.has_any(("Cerulean Aura", "Springheel Boots"), world.player))
@@ -112,7 +113,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
     set_rule(world.get_location("Tower of Regrets - Treasure"), lambda state: needs_either_glove(state) or state.can_reach_region("Euclid Shrugged", world.player))
     set_rule(world.get_location("Uncertain Semiotics - Treasure"), lambda state: needs_item(state, "Springheel Boots"))
     set_rule(world.get_location("You Have to Start the Game - Treasure"), lambda state: needs_item(state, "Springheel Boots") and needs_glove(state, "Left"))
-    if world.options.logic_difficulty > 1: # Harder than hard
+    if world.options.logic_difficulty > 1: # Harder than Hard
         set_rule(world.get_location("You Have to Start the Game - Treasure"), lambda state: needs_item(state, "Springheel Boots") and needs_either_glove(state))
 
     # BELL RULES
@@ -124,4 +125,5 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         set_rule(world.get_location("Tower of Sorrows - Right Bell"), lambda state: state.can_reach_location("Contrived Lock/Key Mechanisms - Treasure", world.player))
         set_rule(world.get_location("You Definitely Shouldn't Go Left - Top Bell"), lambda state: state.can_reach_region("Never Could See Any Other Way", world.player))
 
-    world.multiworld.completion_condition[world.player] = lambda state: state.can_reach_location("Eponymous - Win the Game", world.player)
+    # UT doesn't understand go mode. And according to the discord I don't think it ever will because I use an item for goaling.
+    world.multiworld.completion_condition[world.player] = lambda state: needs_item(state, "Win the Game")
