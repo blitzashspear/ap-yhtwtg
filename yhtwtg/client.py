@@ -299,9 +299,9 @@ class WinTheGameContext(SuperContext):
         self.WinTheGame.write_float(self.respawn_player_x_address, player_x)
         self.WinTheGame.write_float(self.respawn_player_y_address, player_y)
 
-    def get_latest_checkpoint(self) -> tuple[int, int, float, float]:
-        return (self.WinTheGame.read_int(self.respawn_room_x_address), self.WinTheGame.read_int(self.respawn_room_y_address), 
-                self.WinTheGame.read_float(self.respawn_player_x_address), self.WinTheGame.read_float(self.respawn_player_y_address))
+    def get_latest_checkpoint(self) -> tuple[float, float, int, int]:
+        return (self.WinTheGame.read_float(self.respawn_player_x_address), self.WinTheGame.read_float(self.respawn_player_y_address), 
+                self.WinTheGame.read_int(self.respawn_room_x_address), self.WinTheGame.read_int(self.respawn_room_y_address))
 
     def update_password_tab(self) -> None:
         if getattr(self, "ui", None) is not None:
