@@ -4,6 +4,7 @@ from . import items, regions, rules
 from .options import WinTheGameOptions, option_groups
 from .data.location_ids import LOCATION_IDS
 from .data.item_ids import ITEM_IDS
+from .data.valid_passwords import VALID_PASSWORDS
 from worlds.LauncherComponents import Component, Type, components, launch as launch_component, icon_paths
 
 def launch_client() -> None:
@@ -99,6 +100,24 @@ class WinTheGameWorld(World):
         return slot_data
     
     def generate_early(self) -> None:
+        if self.options.password_randomization > 0:
+            if self.options.password_randomization == 1: # Words
+                solved_password = self.random.choice(VALID_PASSWORDS)
+            elif self.options.password_randomization == 2: # Any
+                solved_password = self.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
+            magic_symbol = self.random.choice([i for i in range(-9, 10) if i != 0]) # -9 to -1 and 1 to 9
+            magic_word = ""
+            for letter in solved_password:
+                ascii = ord(letter) + magic_symbol
+                if ascii > ord("Z"):
+                    ascii -= 26
+                elif ascii < ord("A"):
+                    ascii += 26
+                magic_word += chr(ascii)
+            self.solved_password = solved_password
+            self.magic_word = magic_word
+            self.magic_symbol = magic_symbol
+
         re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
         if re_gen_passthrough and self.game in re_gen_passthrough:
             self.passthrough = re_gen_passthrough["You Have to Win the Game"]
@@ -109,3 +128,6 @@ class WinTheGameWorld(World):
             self.options.logic_difficulty.value = self.passthrough["logic_difficulty"]
             self.options.include_extra_roadblocks.value = self.passthrough["include_extra_roadblocks"]
             self.options.password_randomization.value = self.passthrough["password_randomization"]
+            self.solved_password = self.passthrough["solved_password"]
+            self.magic_word = self.passthrough["magic_word"]
+            self.magic_symbol = self.passthrough["magic_symbol"]

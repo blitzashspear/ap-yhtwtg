@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from .__init__ import WinTheGameWorld
 from .data.item_ids import ITEM_IDS
 from .data.item_classifications import ITEM_CLASSIFICATIONS
-from .data.valid_passwords import VALID_PASSWORDS
 
 class WinTheGameItem(Item):
     game = "You Have to Win the Game"
@@ -30,33 +29,15 @@ def create_all_items(world: WinTheGameWorld) -> None:
     else:
         itempool.append(world.create_item("Spider Gloves"))
 
-    # This breaks UT. Oh well. Thats what the password tab on the client is for I guess.
-    solved_password = "SUPER"
-    if world.options.password_randomization > 0:
-        if world.options.password_randomization == 1: # Words
-            solved_password = world.random.choice(VALID_PASSWORDS)
-        elif world.options.password_randomization == 2: # Any
-            solved_password = world.random.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5)
-        itempool.append(world.create_item("Reveal Magic Word"))
-        itempool.append(world.create_item("Reveal Magic Symbol"))
-        magic_symbol = world.random.choice([i for i in range(-9, 10) if i != 0]) # -9 to -1 and 1 to 9
-        magic_word = ""
-        for letter in solved_password:
-            ascii = ord(letter) + magic_symbol
-            if ascii > ord("Z"):
-                ascii -= 26
-            elif ascii < ord("A"):
-                ascii += 26
-            magic_word += chr(ascii)
-        world.solved_password = solved_password
-        world.magic_word = magic_word
-        world.magic_symbol = magic_symbol
-
     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-        if letter in solved_password:
+        if letter in world.solved_password:
             itempool.append(create_item_with_custom_classification(world, f"Letter {letter}", ItemClassification.progression_deprioritized_skip_balancing))
         else:
             itempool.append(world.create_item(f"Letter {letter}"))
+
+    if world.options.password_randomization > 0:
+        itempool.append(world.create_item("Reveal Magic Word"))
+        itempool.append(world.create_item("Reveal Magic Symbol"))
 
     if world.options.require_unlock_teleporters:
         itempool.append(world.create_item("Unlock Teleporters"))

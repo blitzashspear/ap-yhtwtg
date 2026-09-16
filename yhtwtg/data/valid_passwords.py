@@ -17,7 +17,7 @@ VALID_PASSWORDS = [
     "CRAZY",
     "CRIME",
 
-    "DELAY"
+    "DELAY",
     "DOZEN",
     "DREAM",
     "DRINK",
@@ -25,11 +25,11 @@ VALID_PASSWORDS = [
     "EBONY",
     "EIGHT",
     "ENTRY",
-    "EQUAL"
+    "EQUAL",
     "EXIST",
 
     "FALSE",
-    "FLOWN"
+    "FLOWN",
     "FOCUS",
     "FRONT",
 
