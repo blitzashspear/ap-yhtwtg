@@ -121,6 +121,7 @@ def set_all_rules(world: WinTheGameWorld) -> None:
         set_rule(world.get_location("Forgotten Tunnels - Bottom Bell"), lambda state: state.can_reach_location("Forgotten Tunnels - Left Treasure", world.player))
         set_rule(world.get_location("Hops and Skips - Bottom Bell"), lambda state: state.can_reach_location("Hops and Skips - Treasure", world.player))
         set_rule(world.get_location("Hydra Is Myth - Bell"), lambda state: state.can_reach_location("Hydra Is Myth - Treasure", world.player))
+        set_rule(world.get_location("Swimming Upstream - Bell"), lambda state: state.can_reach_location("Swimming Upstream - Treasure", world.player))
         set_rule(world.get_location("Tower of Sorrows - Left Bell"), lambda state: state.can_reach_region("You Definitely Shouldn't Go Left", world.player))
         set_rule(world.get_location("Tower of Sorrows - Right Bell"), lambda state: state.can_reach_location("Contrived Lock/Key Mechanisms - Treasure", world.player))
         set_rule(world.get_location("You Definitely Shouldn't Go Left - Top Bell"), lambda state: state.can_reach_region("Never Could See Any Other Way", world.player))

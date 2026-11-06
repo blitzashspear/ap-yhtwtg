@@ -9,18 +9,22 @@
 # Switch to Rule Builder.
 # Extra Spicy map.
 # YAML option for custom password.
+# Switch from pointer chains to AOB scans? Most likely culprit of why players just don't get items sometimes.
+
+# TODO
+# FIX PASSWORD DETERMINISM
 
 import asyncio
 from typing import TYPE_CHECKING
 
 tracker_loaded = False
-from CommonClient import gui_enabled, logger
+from CommonClient import gui_enabled, logger, ClientCommandProcessor
 if TYPE_CHECKING:
     from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
 else:
     try:
         from worlds.tracker.TrackerClient import TrackerGameContext as SuperContext
-        tracker_loaded = True        
+        tracker_loaded = True
     except ModuleNotFoundError:
         from CommonClient import CommonContext as SuperContext
 
@@ -41,10 +45,22 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image # why the fuck doesnt vscode recongize this import
 
+class WinTheGameCommandProcessor(ClientCommandProcessor):
+    def __init__(self, ctx):
+        super().__init__(ctx)
+
+    def _cmd_deathlink(self):
+        """Toggle DeathLink"""
+        if self.ctx.WinTheGame:
+            self.ctx.death_link_active = not self.ctx.death_link_active
+        else:
+            self.ctx.logger("Connect to a slot first!")
+
 class WinTheGameContext(SuperContext):
     game = "You Have to Win the Game"
     tags = {"AP"}
     items_handling = 0b111
+    command_processor = WinTheGameCommandProcessor
     death_link_active = False
     death_link_amnesty = 25
     death_link_behavior = "checkpoint"
@@ -536,7 +552,6 @@ class WinTheGameContext(SuperContext):
         self.WinTheGame.write_int(self.deaths_address, self.cat_stored_deaths)
         self.is_cat = False
 
-
 async def watch_game(ctx: WinTheGameContext):
     while not ctx.exit_event.is_set():
         if ctx.WinTheGame == None:
@@ -545,7 +560,7 @@ async def watch_game(ctx: WinTheGameContext):
             continue
 
         # Campaign check. The original campaign only has 64.
-        # Also the guard to make sure the game doesn't send out all of my checks at the title screen.
+        # Also the guard to make sure the game doesn't send out all of my checks at the title screen, i think?
         total_treasures = ctx.WinTheGame.read_int(ctx.total_treasure_address)
         if total_treasures != 68: 
             if not ctx.shown_campaign_message:
@@ -571,6 +586,8 @@ async def watch_game(ctx: WinTheGameContext):
                 nth = lambda n: f"{n}{'th' if 10 <= n % 100 <= 20 else {1:'st', 2:'nd', 3:'rd'}.get(n % 10, 'th')}"
                 await ctx.send_death(f"{ctx.player_names[ctx.slot]} died for the {nth(deaths)} time while traversing {COORDS_TO_ROOM_NAME[current_room][:-13]}.")
                 ctx.last_death_link = deaths
+        elif "DeathLink" in ctx.tags:
+            await ctx.update_death_link(False)
 
         locations = []
         treasures_found = ctx.WinTheGame.read_int(ctx.treasures_found_address)
@@ -600,25 +617,30 @@ async def watch_game(ctx: WinTheGameContext):
         if len(locations) != 0:
             await ctx.check_locations(locations)
 
-        times_lost: int = ctx.WinTheGame.read_int(ctx.times_lost_address)
-        amount_of_received_items = len(ctx.items_received)
-        if amount_of_received_items == 0:
+        # Receiving Items
+        # please just fucking work man
+        # the way i WANT this to work is this
+        # when logging into the game after receiving items, run give_item for everything up until that point
+        # then on the next run-through, run give_item for all of the new items
+        # doing all of this so all received traps dont retrigger upon reconnecting, but new ones will
+        # rewritten this code snippet like 4 times
+        items_in_room = len(ctx.items_received)
+        if items_in_room == 0:
             ctx.resynced = True
-        else:
+        else: 
             if not ctx.resynced:
-                amount_of_received_items = times_lost
-                times_lost = 0
-            if times_lost < amount_of_received_items:
-                while times_lost < amount_of_received_items:
-                    ctx.give_item(ID_TO_ITEM[ctx.items_received[times_lost].item])
-                    times_lost += 1
-                ctx.WinTheGame.write_int(ctx.times_lost_address, times_lost)
-                if not ctx.resynced:
-                    ctx.resynced = True
+                items_in_room = ctx.WinTheGame.read_int(ctx.times_lost_address)
+            if ctx.items_given < items_in_room:
+                while ctx.items_given < items_in_room:
+                    ctx.give_item(ID_TO_ITEM[ctx.items_received[ctx.items_given].item])
+                    ctx.items_given += 1
+                ctx.WinTheGame.write_int(ctx.times_lost_address, ctx.items_given)
+            ctx.resynced = True
 
         if ctx.split_spider_gloves:
             left_check = ctx.has_left_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 1
             right_check = ctx.has_right_glove and ctx.WinTheGame.read_uchar(ctx.player_face_left_address) == 0
+            # disable split gloves and just perma write wall jump access to memory, saves pymem calls.
             if left_check and right_check:
                 ctx.split_spider_gloves = False
                 ctx.WinTheGame.write_uchar(ctx.spider_gloves_address, 1)
@@ -654,6 +676,8 @@ async def watch_game(ctx: WinTheGameContext):
                 ctx.teleport_player(90.0, 168.0)
 
         if in_secret_rooms:
+            # there are bells in the secret rooms which could overwrite this
+            # yeah i kind of have to spam the fuck out of this write operation here
             ctx.WinTheGame.write_int(ctx.respawn_room_x_address, ctx.before_secret_room_data[0][0])
             ctx.WinTheGame.write_int(ctx.respawn_room_y_address, ctx.before_secret_room_data[0][1])
             ctx.WinTheGame.write_float(ctx.respawn_player_x_address, ctx.before_secret_room_data[1][0])
